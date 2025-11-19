@@ -1,10 +1,44 @@
-# OSX
-#
+# ------------------------
+# OS Files
+# ------------------------
 .DS_Store
+Thumbs.db
 
-# Xcode
-#
-build/
+# ------------------------
+# Node / JavaScript
+# ------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Metro / React Native cache
+.expo/
+.expo-shared/
+.metro-health-check*
+
+# ------------------------
+# Android
+# ------------------------
+android/.gradle/
+android/.idea/
+android/.cxx/
+android/build/
+android/app/build/
+android/local.properties
+android/*.iml
+*.hprof
+*.keystore
+*.jks
+!debug.keystore
+
+# ------------------------
+# iOS
+# ------------------------
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+ios/*/xcuserdata/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -13,63 +47,53 @@ build/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata
-*.xccheckout
-*.moved-aside
-DerivedData
+*.xcuserstate
+DerivedData/
 *.hmap
 *.ipa
-*.xcuserstate
-**/.xcode.env.local
+*.moved-aside
 
-# Android/IntelliJ
-#
-build/
-.idea
-.gradle
-local.properties
-*.iml
-*.hprof
-.cxx/
-*.keystore
-!debug.keystore
-.kotlin/
-
-# node.js
-#
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
-# screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/
-
+# ------------------------
+# Fastlane
+# ------------------------
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/screenshots
 **/fastlane/test_output
 
-# Bundle artifact
+# ------------------------
+# Bundled JS
+# ------------------------
 *.jsbundle
 
-# Ruby / CocoaPods
-**/Pods/
+# ------------------------
+# Ruby/CocoaPods
+# ------------------------
 /vendor/bundle/
 
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
+# ------------------------
+# Coverage / Test
+# ------------------------
+coverage/
 
-# testing
-/coverage
-
+# ------------------------
 # Yarn
+# ------------------------
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# ------------------------
+# Environment Files (IMPORTANT)
+# ------------------------
+.env
+.env.*.local
+
+# ------------------------
+# Logs
+# ------------------------
+*.log
+logs/

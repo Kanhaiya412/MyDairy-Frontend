@@ -1,11 +1,19 @@
+const path = require('path');
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
 /**
- * Metro configuration
- * https://reactnative.dev/docs/metro
- *
- * @type {import('@react-native/metro-config').MetroConfig}
+ * Fix for RN CLI 20 + Metro 0.82.1
+ * This tells Metro to include JS under android/app/src/main
  */
-const config = {};
+const defaultConfig = getDefaultConfig(__dirname);
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+const config = {
+  watchFolders: [
+    path.resolve(__dirname, 'android/app/src/main'),
+  ],
+  resolver: {
+    sourceExts: ['js', 'jsx', 'ts', 'tsx', 'json'],
+  },
+};
+
+module.exports = mergeConfig(defaultConfig, config);

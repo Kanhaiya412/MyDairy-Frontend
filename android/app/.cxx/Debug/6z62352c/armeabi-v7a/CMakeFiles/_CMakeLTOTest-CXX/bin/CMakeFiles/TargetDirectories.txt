@@ -1,0 +1,4 @@
+C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

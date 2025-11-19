@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to running Android app",
+      "type": "reactnativedirect",
+      "request": "attach",
+      "cwd": "${workspaceFolder}",
+      "platform": "android"
+    },
+    {
+      "name": "Run Android (Debug Mode)",
+      "type": "reactnativedirect",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "platform": "android",
+      "port": 8081
+    },
+    {
+      "name": "Attach to running iOS app",
+      "type": "reactnativedirect",
+      "request": "attach",
+      "cwd": "${workspaceFolder}",
+      "platform": "ios"
+    }
+  ]
+}
