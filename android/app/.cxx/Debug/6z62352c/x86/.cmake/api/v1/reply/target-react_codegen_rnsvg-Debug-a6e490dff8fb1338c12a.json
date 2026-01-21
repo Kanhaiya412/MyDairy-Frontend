@@ -11,6 +11,7 @@
 		"commands" : 
 		[
 			"add_library",
+			"target_link_options",
 			"target_link_libraries",
 			"target_compile_options",
 			"target_compile_reactnative_options",
@@ -36,49 +37,61 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 32,
+				"line" : 30,
 				"parent" : 0
 			},
 			{
-				"command" : 1,
+				"command" : 2,
 				"file" : 0,
-				"line" : 60,
+				"line" : 35,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 63,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 75,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
-				"file" : 0,
-				"line" : 72,
-				"parent" : 0
-			},
-			{
-				"command" : 2,
 				"file" : 1,
 				"line" : 30,
-				"parent" : 4
+				"parent" : 5
 			},
 			{
-				"command" : 2,
+				"command" : 3,
 				"file" : 0,
-				"line" : 84,
+				"line" : 87,
 				"parent" : 0
-			},
-			{
-				"command" : 4,
-				"file" : 0,
-				"line" : 92,
-				"parent" : 0
-			},
-			{
-				"command" : 4,
-				"file" : 1,
-				"line" : 33,
-				"parent" : 4
 			},
 			{
 				"command" : 5,
 				"file" : 0,
+				"line" : 95,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 33,
+				"parent" : 5
+			},
+			{
+				"command" : 6,
+				"file" : 0,
 				"line" : 20,
+				"parent" : 0
+			},
+			{
+				"command" : 6,
+				"file" : 0,
+				"line" : 68,
 				"parent" : 0
 			}
 		]
@@ -92,43 +105,43 @@
 					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D__BIONIC_NO_PAGE_SIZE_MACRO -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-Wall"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-Werror"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-fexceptions"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-frtti"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-std=c++20"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-DFOLLY_NO_CONFIG=1"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"fragment" : "-DLOG_TAG=\\\"ReactNative\\\""
 				},
 				{
-					"backtrace" : 6,
+					"backtrace" : 7,
 					"fragment" : "-Wpedantic"
 				},
 				{
-					"backtrace" : 6,
+					"backtrace" : 7,
 					"fragment" : "-Wno-gnu-zero-variadic-macro-arguments"
 				},
 				{
-					"backtrace" : 6,
+					"backtrace" : 7,
 					"fragment" : "-Wno-dollar-in-identifier-extension"
 				},
 				{
@@ -163,11 +176,11 @@
 			"defines" : 
 			[
 				{
-					"backtrace" : 7,
+					"backtrace" : 8,
 					"define" : "REACT_NATIVE_MINOR_VERSION=82"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"define" : "RN_SERIALIZABLE_STATE"
 				},
 				{
@@ -177,33 +190,37 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 9,
+					"backtrace" : 10,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni/."
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 10,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni/../../../../common/cpp"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 10,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni/../../../build/generated/source/codegen/jni"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 10,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni/../../../build/generated/source/codegen/jni/react/renderer/components/rnsvg"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 11,
+					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni"
+				},
+				{
+					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "C:/Users/91957/.gradle/caches/8.13/transforms/c49dadac905327471184fc70661e0688/transformed/react-android-0.82.1-debug/prefab/modules/reactnative/include"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "C:/Users/91957/.gradle/caches/8.13/transforms/c49dadac905327471184fc70661e0688/transformed/react-android-0.82.1-debug/prefab/modules/jsi/include"
 				},
 				{
-					"backtrace" : 3,
+					"backtrace" : 4,
 					"isSystem" : true,
 					"path" : "C:/Users/91957/.gradle/caches/8.13/transforms/fc4ca5ed306a0356b6e8e045eabf333c/transformed/fbjni-0.7.0/prefab/modules/fbjni/include"
 				}
@@ -240,16 +257,21 @@
 			},
 			{
 				"backtrace" : 2,
+				"fragment" : "-Wl,-z,max-page-size=16384",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 3,
 				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\c49dadac905327471184fc70661e0688\\transformed\\react-android-0.82.1-debug\\prefab\\modules\\reactnative\\libs\\android.x86\\libreactnative.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 2,
+				"backtrace" : 3,
 				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\c49dadac905327471184fc70661e0688\\transformed\\react-android-0.82.1-debug\\prefab\\modules\\jsi\\libs\\android.x86\\libjsi.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 3,
+				"backtrace" : 4,
 				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\fc4ca5ed306a0356b6e8e045eabf333c\\transformed\\fbjni-0.7.0\\prefab\\modules\\fbjni\\libs\\android.x86\\libfbjni.so",
 				"role" : "libraries"
 			},

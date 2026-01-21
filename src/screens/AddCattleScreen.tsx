@@ -11,27 +11,39 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Dropdown } from "react-native-element-dropdown"
+import { Dropdown } from "react-native-element-dropdown";
 import moment from "moment";
+
 import {
   addCattleEntry,
+  updateCattleEntry,
   CattleEntry,
   CattleBreed,
   CattleCategory,
-  updateCattleEntry,
-  deleteCattleEntry
-} from "../services/cattleService.ts";
-import { useNavigation, useFocusEffect, useRoute } from "@react-navigation/native";
+  CattleGender,
+} from "../services/cattleService";
 
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+
+/* ──────────────────────────────────────────────
+        MATCHING WHITE + BLUE DAIRY THEME
+────────────────────────────────────────────── */
 const theme = {
-  bg: "#F8FAFC",
+  bg: "#EDF2FF",
   surface: "#FFFFFF",
-  border: "#E2E8F0",
-  brand: "#22C55E",
-  brandStrong: "#16A34A",
-  text: "#1E293B",
+  surfaceSoft: "#F4F6FF",
+  border: "#D4DCFF",
+  brand: "#2563EB",
+  brandStrong: "#1D4ED8",
+  text: "#0F172A",
   textMuted: "#64748B",
 };
+
+/* ------------------- Options ------------------- */
+const genderOptions = [
+  { label: "Male", value: "MALE" },
+  { label: "Female", value: "FEMALE" },
+];
 
 const categoryOptions = [
   { label: "Cow", value: "COW" },
@@ -44,7 +56,7 @@ const cowBreeds = [
   { label: "Sahival", value: "SAHIVAL" },
   { label: "Devli", value: "DEVLI" },
   { label: "Indian", value: "INDIAN" },
-  { label: "Other_Cow", value: "OTHER_COW" },
+  { label: "Other Cow", value: "OTHER_COW" },
 ];
 
 const buffaloBreeds = [
@@ -53,23 +65,27 @@ const buffaloBreeds = [
   { label: "Mehsana", value: "MEHSANA" },
   { label: "Badhawari", value: "BADHAWARI" },
   { label: "Banni", value: "BANNI" },
-  { label: "Other_Buffalo", value: "OTHER_BUFFALO" },
+  { label: "Other Buffalo", value: "OTHER_BUFFALO" },
 ];
 
+/* ------------------------------------------------------------
+                     MAIN SCREEN
+------------------------------------------------------------ */
 const AddCattleScreen: React.FC = () => {
   const navigation = useNavigation();
-  const route = useRoute();
+
   const [loading, setLoading] = useState(false);
   const [showPurchasePicker, setShowPurchasePicker] = useState(false);
   const [showSoldPicker, setShowSoldPicker] = useState(false);
+
   const [isUpdate, setIsUpdate] = useState(false);
-  const [cattleId, setCattleId] = useState<number | null>(null);
+  const [cattleRecordId, setCattleRecordId] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     cattleId: "",
     cattleName: "",
-    cattleCategory: "COW" as CattleCategory,
-    cattleBreed: "GIR" as CattleBreed,
+    cattleCategory: "COW",
+    cattleBreed: "GIR",
     cattlePurchaseDate: "",
     cattleDay: "",
     cattlePurchaseFrom: "",
@@ -77,75 +93,55 @@ const AddCattleScreen: React.FC = () => {
     cattleSoldDate: "",
     cattleSoldTo: "",
     cattleSoldPrice: "",
-    totalCattle: "",
+    totalCattle: "1",
+    gender: "FEMALE",
   });
 
-  // Check if we're updating an existing cattle record when screen comes into focus
+  /* ------------ Load Edit Data If Present --------------- */
   useFocusEffect(
     React.useCallback(() => {
-      const checkForUpdateData = async () => {
-        try {
-          console.log("Checking for update data in AsyncStorage");
-          const cattleDataStr = await AsyncStorage.getItem('cattleDataForUpdate');
-          console.log("Found cattle data:", cattleDataStr);
-          
-          if (cattleDataStr) {
-            const cattleData = JSON.parse(cattleDataStr);
-            console.log("Setting update mode with data:", cattleData);
-            setIsUpdate(true);
-            setCattleId(cattleData.id);
-            
-            setForm({
-              cattleId: cattleData.cattleId || "",
-              cattleName: cattleData.cattleName || cattleData.cattlename || "", // Handle both field names
-              cattleCategory: cattleData.cattleCategory || "COW",
-              cattleBreed: cattleData.cattleBreed || "GIR",
-              cattlePurchaseDate: cattleData.cattlePurchaseDate || "",
-              cattleDay: cattleData.cattleDay || "",
-              cattlePurchaseFrom: cattleData.cattlePurchaseFrom || "",
-              cattlePurchasePrice: cattleData.cattlePurchasePrice?.toString() || "",
-              cattleSoldDate: cattleData.cattleSoldDate || "",
-              cattleSoldTo: cattleData.cattleSoldTo || "",
-              cattleSoldPrice: cattleData.cattleSoldPrice?.toString() || "",
-              totalCattle: cattleData.totalCattle?.toString() || "",
-            });
-            
-            // Clear the stored data
-            await AsyncStorage.removeItem('cattleDataForUpdate');
-          } else {
-            console.log("No update data found, resetting to add mode");
-            // Reset to add mode if no update data
-            setIsUpdate(false);
-            setCattleId(null);
-            setForm({
-              cattleId: "",
-              cattleName: "",
-              cattleCategory: "COW" as CattleCategory,
-              cattleBreed: "GIR" as CattleBreed,
-              cattlePurchaseDate: "",
-              cattleDay: "",
-              cattlePurchaseFrom: "",
-              cattlePurchasePrice: "",
-              cattleSoldDate: "",
-              cattleSoldTo: "",
-              cattleSoldPrice: "",
-              totalCattle: "",
-            });
-          }
-        } catch (error) {
-          console.error("Error parsing cattle data for update:", error);
+      const loadEditData = async () => {
+        const stored = await AsyncStorage.getItem("cattleDataForUpdate");
+
+        if (stored) {
+          const data = JSON.parse(stored);
+          setIsUpdate(true);
+          setCattleRecordId(data.id);
+
+          setForm({
+            cattleId: data.cattleId || "",
+            cattleName: data.cattlename || "",
+            gender: data.gender || "MALE",
+            cattleCategory: data.cattleCategory || "COW",
+            cattleBreed: data.cattleBreed || "GIR",
+            cattlePurchaseDate: data.cattlePurchaseDate || "",
+            cattleDay: data.cattleDay || "",
+            cattlePurchaseFrom: data.cattlePurchaseFrom || "",
+            cattlePurchasePrice: data.cattlePurchasePrice?.toString() || "",
+            cattleSoldDate: data.cattleSoldDate || "",
+            cattleSoldTo: data.cattleSoldTo || "",
+            cattleSoldPrice: data.cattleSoldPrice?.toString() || "",
+            totalCattle: data.totalCattle?.toString() || "1",
+          });
+
+          await AsyncStorage.removeItem("cattleDataForUpdate");
+        } else {
+          setIsUpdate(false);
+          setCattleRecordId(null);
         }
       };
-      
-      checkForUpdateData();
+
+      loadEditData();
     }, [])
   );
 
   const handleChange = (key: string, value: any) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  /* ------------------- Date Picker ---------------------- */
   const handleDateConfirm = (type: "purchase" | "sold", date: Date) => {
     const formatted = moment(date).format("YYYY-MM-DD");
+
     if (type === "purchase") {
       handleChange("cattlePurchaseDate", formatted);
       handleChange("cattleDay", moment(date).format("dddd"));
@@ -156,38 +152,23 @@ const AddCattleScreen: React.FC = () => {
     }
   };
 
+  /* ------------------------ SUBMIT ----------------------- */
   const handleSubmit = async () => {
-    console.log("handleSubmit called", { isUpdate, cattleId, form });
-    
-    if (
-      !form.cattleId ||
-      !form.cattleName ||
-      !form.cattlePurchasePrice ||
-      !form.cattlePurchaseDate
-    ) {
-      Alert.alert("⚠️ Missing Data", "Please fill all required fields.");
+    if (!form.cattleId || !form.cattleName || !form.cattlePurchaseDate) {
+      Alert.alert("Missing Fields", "Please fill all required fields.");
       return;
     }
-
-    // Additional validation for update mode
-    if (isUpdate && !cattleId) {
-      Alert.alert("⚠️ Update Error", "Missing cattle ID for update operation.");
-      return;
-    }
-
-    // Track update operation status
-    let updateAttempted = false;
-    let updateErrorHandled = false;
 
     try {
       setLoading(true);
-      const storedId = await AsyncStorage.getItem("userId");
-      const userId = parseInt(storedId || "0", 10);
+
+      const userId = Number(await AsyncStorage.getItem("userId"));
 
       const payload: CattleEntry = {
         userId,
         cattleId: form.cattleId,
         cattleName: form.cattleName,
+        gender: form.gender as CattleGender,
         cattleCategory: form.cattleCategory as CattleCategory,
         cattleBreed: form.cattleBreed as CattleBreed,
         cattlePurchaseDate: form.cattlePurchaseDate,
@@ -196,269 +177,178 @@ const AddCattleScreen: React.FC = () => {
         cattlePurchasePrice: Number(form.cattlePurchasePrice),
         cattleSoldDate: form.cattleSoldDate || undefined,
         cattleSoldTo: form.cattleSoldTo || undefined,
-        cattleSoldPrice: Number(form.cattleSoldPrice) || 0,
+        cattleSoldPrice: form.cattleSoldPrice
+          ? Number(form.cattleSoldPrice)
+          : undefined,
         totalCattle: Number(form.totalCattle) || 1,
       };
 
-      // Check if this is a sold cattle record
-      const isSoldCattle = form.cattleSoldDate && form.cattleSoldTo && form.cattleSoldPrice;
-
-      if (isUpdate && cattleId) {
-        // Get userId for the update request
-        const storedId = await AsyncStorage.getItem("userId");
-        const userId = parseInt(storedId || "0", 10);
-
-        // For update, create a payload with all fields (backend expects all fields)
-        const updatePayload: Partial<CattleEntry> = {
-          userId: userId, // Include userId for authorization
-          cattleId: form.cattleId,
-          cattleName: form.cattleName,
-          cattleCategory: form.cattleCategory as CattleCategory,
-          cattleBreed: form.cattleBreed as CattleBreed,
-          cattlePurchaseDate: form.cattlePurchaseDate,
-          cattleDay: form.cattleDay,
-          cattlePurchaseFrom: form.cattlePurchaseFrom,
-          cattlePurchasePrice: Number(form.cattlePurchasePrice),
-          totalCattle: Number(form.totalCattle) || 1,
-        };
-
-        // Only add sold fields if ALL sold fields have values (to maintain consistency)
-        // This prevents sending partial sold data which causes 403 errors
-        if (form.cattleSoldDate && form.cattleSoldTo && form.cattleSoldPrice) {
-          updatePayload.cattleSoldDate = form.cattleSoldDate;
-          updatePayload.cattleSoldTo = form.cattleSoldTo;
-          updatePayload.cattleSoldPrice = Number(form.cattleSoldPrice);
-        }
-
-        console.log("Sending update payload:", { cattleId, updatePayload });
-        updateAttempted = true;
-
-        if (isSoldCattle) {
-          // If cattle is sold, delete the record
-          console.log("Deleting cattle record:", cattleId);
-          await deleteCattleEntry(cattleId);
-          Alert.alert("✅ Success", "Cattle record deleted successfully (sold cattle)!");
-        } else {
-          // Update existing cattle record
-          console.log("Updating cattle record:", cattleId);
-          console.log("Update payload:", updatePayload);
-          try {
-            await updateCattleEntry(cattleId, updatePayload);
-            Alert.alert("✅ Success", "Cattle record updated successfully!");
-          } catch (updateError: any) {
-            console.error("Update error:", updateError);
-            updateErrorHandled = true;
-            // Check if this might be a network issue after successful update
-            const errorMessage = updateError.response?.data?.message || updateError.message || "Network error";
-            
-            // If it's a network error (no response), the update might have succeeded
-            if (!updateError.response) {
-              Alert.alert("⚠️ Network Issue", 
-                "Update may have succeeded despite network error. Please check your records to confirm.");
-            } 
-            // If it's a backend serialization error but likely succeeded
-            else if (updateError.response?.status === 500 && 
-                     (errorMessage.includes('serialization') || errorMessage.includes('Hibernate'))) {
-              Alert.alert("✅ Success", 
-                "Cattle record updated successfully! (Minor backend serialization issue occurred but update was saved)");
-            }
-            else {
-              // For other errors, show the actual error
-              Alert.alert("❌ Update Failed", `Failed to update cattle record: ${errorMessage}`);
-            }
-          }
-        }
+      if (isUpdate && cattleRecordId) {
+        await updateCattleEntry(cattleRecordId, payload);
+        Alert.alert("Updated", "Cattle record updated successfully!");
       } else {
-        console.log("Sending add payload:", { payload });
-        // Add new cattle record
-        console.log("Adding new cattle record");
         await addCattleEntry(payload);
-        Alert.alert("✅ Success", "Cattle record added successfully!");
+        Alert.alert("Success", "Cattle added successfully!");
       }
 
-      // Reset form only when adding new record or when selling cattle
-      if (!isUpdate || isSoldCattle) {
-        setForm({
-          cattleId: "",
-          cattleName: "",
-          cattleCategory: "COW" as CattleCategory,
-          cattleBreed: "GIR" as CattleBreed,
-          cattlePurchaseDate: "",
-          cattleDay: "",
-          cattlePurchaseFrom: "",
-          cattlePurchasePrice: "",
-          cattleSoldDate: "",
-          cattleSoldTo: "",
-          cattleSoldPrice: "",
-          totalCattle: "",
-        });
-        // Reset update state if we deleted a record or finished adding
-        if (isSoldCattle || !isUpdate) {
-          setIsUpdate(false);
-          setCattleId(null);
-        }
-      }
-    } catch (err: any) {
-      console.error("❌ Failed to save cattle:", err);
-      // Don't show error if it was already handled in the update section
-      if (updateAttempted && !updateErrorHandled) {
-        const errorMessage = err.response?.data?.message || err.message || "Unable to save cattle record. Please try again.";
-        Alert.alert("❌ Error", errorMessage);
-      } else if (!updateAttempted) {
-        // Only show error for non-update operations
-        const errorMessage = err.response?.data?.message || err.message || "Unable to save cattle record. Please try again.";
-        Alert.alert("❌ Error", errorMessage);
-      }
+      navigation.goBack();
+    } catch (e: any) {
+      Alert.alert("Error", e.response?.data || e.message || "Failed");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ------------------------- UI --------------------------- */
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-        <Text style={styles.title}>{isUpdate ? "UpDate Cattle" : "🐄 Add New Cattle"}</Text>
+        <Text style={styles.title}>
+          {isUpdate ? "Update Cattle" : "🐄 Add New Cattle"}
+        </Text>
 
         <View style={styles.card}>
           {/* Cattle ID */}
+          <Text style={styles.label}>Cattle ID</Text>
           <TextInput
             style={styles.input}
-            placeholder="Cattle ID"
+            placeholder="Enter cattle ID"
             value={form.cattleId}
             onChangeText={(t) => handleChange("cattleId", t)}
-            placeholderTextColor={theme.textMuted}
           />
 
-          {/* Cattle Name */}
+          {/* Name */}
+          <Text style={styles.label}>Cattle Name</Text>
           <TextInput
             style={styles.input}
-            placeholder="Cattle Name"
+            placeholder="Enter cattle name"
             value={form.cattleName}
             onChangeText={(t) => handleChange("cattleName", t)}
-            placeholderTextColor={theme.textMuted}
           />
 
-          {/* Category Dropdown */}
-          <Text style={styles.label}>Cattle Category</Text>
+          {/* Gender */}
+          <Text style={styles.label}>Gender</Text>
+          <Dropdown
+            data={genderOptions}
+            labelField="label"
+            valueField="value"
+            value={form.gender}
+            style={styles.dropdown}
+            placeholder="Select Gender"
+            onChange={(item) => handleChange("gender", item.value)}
+          />
+
+          {/* Category */}
+          <Text style={styles.label}>Category</Text>
           <Dropdown
             data={categoryOptions}
             labelField="label"
             valueField="value"
-            placeholder="Select Category"
             value={form.cattleCategory}
-            onChange={(item) => handleChange("cattleCategory", item.value)}
             style={styles.dropdown}
-            placeholderStyle={styles.placeholderText}
-            selectedTextStyle={styles.dateText}
+            onChange={(item) => handleChange("cattleCategory", item.value)}
           />
 
-          {/* Breed Dropdown */}
+          {/* Breed */}
           <Text style={styles.label}>Breed</Text>
           <Dropdown
             data={form.cattleCategory === "COW" ? cowBreeds : buffaloBreeds}
             labelField="label"
             valueField="value"
-            placeholder="Select Breed"
             value={form.cattleBreed}
-            onChange={(item) => handleChange("cattleBreed", item.value)}
             style={styles.dropdown}
-            placeholderStyle={styles.placeholderText}
-            selectedTextStyle={styles.dateText}
+            onChange={(item) => handleChange("cattleBreed", item.value)}
           />
 
           {/* Purchase Date */}
           <Text style={styles.label}>Purchase Date</Text>
-          <Pressable
-            style={styles.dateInput}
-            onPress={() => setShowPurchasePicker(true)}
-          >
-            <Text style={form.cattlePurchaseDate ? styles.dateText : styles.placeholderText}>
+          <Pressable style={styles.dateInput} onPress={() => setShowPurchasePicker(true)}>
+            <Text style={styles.dateText}>
               {form.cattlePurchaseDate || "Select Purchase Date"}
             </Text>
             <Text>📅</Text>
           </Pressable>
 
+          {/* Day */}
+          <Text style={styles.label}>Day</Text>
+          <TextInput style={styles.input} editable={false} value={form.cattleDay} />
+
           {/* Purchase Info */}
+          <Text style={styles.label}>Purchased From</Text>
           <TextInput
             style={styles.input}
-            placeholder="Purchase Day (Auto-filled)"
-            value={form.cattleDay}
-            editable={false}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Purchased From"
+            placeholder="Person / Place"
             value={form.cattlePurchaseFrom}
             onChangeText={(t) => handleChange("cattlePurchaseFrom", t)}
           />
+
+          <Text style={styles.label}>Purchase Price (₹)</Text>
           <TextInput
             style={styles.input}
-            placeholder="Purchase Price (₹)"
+            placeholder="0"
+            keyboardType="numeric"
             value={form.cattlePurchasePrice}
             onChangeText={(t) => handleChange("cattlePurchasePrice", t)}
-            keyboardType="numeric"
           />
 
           {/* Sold Info */}
           <Text style={styles.label}>Sold Date (optional)</Text>
-          <Pressable
-            style={styles.dateInput}
-            onPress={() => setShowSoldPicker(true)}
-          >
-            <Text style={form.cattleSoldDate ? styles.dateText : styles.placeholderText}>
+          <Pressable style={styles.dateInput} onPress={() => setShowSoldPicker(true)}>
+            <Text style={styles.dateText}>
               {form.cattleSoldDate || "Select Sold Date"}
             </Text>
             <Text>📅</Text>
           </Pressable>
 
+          <Text style={styles.label}>Sold To</Text>
           <TextInput
             style={styles.input}
-            placeholder="Sold To (optional)"
+            placeholder="Person / Place"
             value={form.cattleSoldTo}
             onChangeText={(t) => handleChange("cattleSoldTo", t)}
           />
+
+          <Text style={styles.label}>Sold Price (₹)</Text>
           <TextInput
             style={styles.input}
-            placeholder="Sold Price (₹)"
+            placeholder="0"
+            keyboardType="numeric"
             value={form.cattleSoldPrice}
             onChangeText={(t) => handleChange("cattleSoldPrice", t)}
-            keyboardType="numeric"
           />
 
+          {/* Total Cattle */}
+          <Text style={styles.label}>Total Cattle</Text>
           <TextInput
             style={styles.input}
-            placeholder="Total Cattle"
+            placeholder="1"
+            keyboardType="numeric"
             value={form.totalCattle}
             onChangeText={(t) => handleChange("totalCattle", t)}
-            keyboardType="numeric"
           />
         </View>
 
+        {/* SAVE BUTTON */}
         <Pressable
           style={[styles.button, loading && { opacity: 0.7 }]}
           onPress={handleSubmit}
           disabled={loading}
         >
-          {loading ? <ActivityIndicator color="#fff" /> : 
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
             <Text style={styles.btnText}>
-              {isUpdate ? 
-                (form.cattleSoldDate && form.cattleSoldTo && form.cattleSoldPrice ? 
-                  "Sell & Delete" : 
-                  "Update Cattle") : 
-                "Add Cattle"}
+              {isUpdate ? "Update Cattle" : "Add Cattle"}
             </Text>
-          }
+          )}
         </Pressable>
       </ScrollView>
 
+      {/* Date pickers */}
       <DateTimePickerModal
         isVisible={showPurchasePicker}
         mode="date"
-        date={
-          form.cattlePurchaseDate && form.cattlePurchaseDate !== ""
-            ? new Date(form.cattlePurchaseDate)
-            : new Date()
-        }
+        date={form.cattlePurchaseDate ? new Date(form.cattlePurchaseDate) : new Date()}
         onConfirm={(date) => handleDateConfirm("purchase", date)}
         onCancel={() => setShowPurchasePicker(false)}
       />
@@ -466,11 +356,7 @@ const AddCattleScreen: React.FC = () => {
       <DateTimePickerModal
         isVisible={showSoldPicker}
         mode="date"
-        date={
-          form.cattleSoldDate && form.cattleSoldDate !== ""
-            ? new Date(form.cattleSoldDate)
-            : new Date()
-        }
+        date={form.cattleSoldDate ? new Date(form.cattleSoldDate) : new Date()}
         onConfirm={(date) => handleDateConfirm("sold", date)}
         onCancel={() => setShowSoldPicker(false)}
       />
@@ -480,65 +366,76 @@ const AddCattleScreen: React.FC = () => {
 
 export default AddCattleScreen;
 
+/* ------------------------------ STYLES ------------------------------ */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1 },
   title: {
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: "800",
     color: theme.text,
-    marginBottom: 12,
+    marginBottom: 16,
   },
+
   card: {
     backgroundColor: theme.surface,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: theme.border,
-    padding: 16,
-    marginBottom: 20,
+    padding: 18,
   },
+
   label: {
     color: theme.textMuted,
     fontSize: 14,
     fontWeight: "600",
-    marginTop: 10,
+    marginTop: 14,
   },
+
+  input: {
+    backgroundColor: theme.surfaceSoft,
+    borderColor: theme.border,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    color: theme.text,
+  },
+
   dropdown: {
     borderWidth: 1,
     borderColor: theme.border,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 14,
     marginTop: 8,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: theme.surfaceSoft,
   },
-  input: {
-    backgroundColor: "#F9FAFB",
-    borderColor: theme.border,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 10,
-    color: theme.text,
-  },
+
   dateInput: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    borderColor: theme.border,
+    backgroundColor: theme.surfaceSoft,
     borderWidth: 1,
-    borderRadius: 10,
+    borderColor: theme.border,
+    borderRadius: 12,
     padding: 12,
-    marginTop: 10,
+    marginTop: 8,
   },
-  dateText: { color: theme.text, fontSize: 16 },
-  placeholderText: { color: theme.textMuted, fontSize: 16 },
+
+  dateText: { color: theme.text, fontSize: 15 },
+
   button: {
     backgroundColor: theme.brandStrong,
-    borderRadius: 12,
+    borderRadius: 14,
+    marginTop: 26,
     paddingVertical: 14,
     alignItems: "center",
-    justifyContent: "center",
   },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+
+  btnText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "800",
+  },
 });

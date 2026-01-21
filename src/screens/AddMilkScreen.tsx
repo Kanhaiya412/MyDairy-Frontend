@@ -1,4 +1,5 @@
-// AddMilkScreen.tsx — PREMIUM GLASS VERSION (Final + No Prefill)
+// AddMilkScreen.tsx — Dairy Professional White & Blue Theme
+// Matches FarmerHome Concept-C dashboard UI
 
 import React, { useEffect, useState } from "react";
 import {
@@ -16,19 +17,22 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { addMilkEntry, getMilkEntries } from "../services/milkService";
 
+import { addMilkEntry, getMilkEntries } from "../services/milkService";
+import { getCattleByUser } from "../services/cattleService";
+
+// Same design language as FarmerHome (Concept C)
 const theme = {
-  bg: "#0F172A",
-  surface: "#0B1220",
-  glass: "rgba(255,255,255,0.06)",
-  border: "rgba(255,255,255,0.1)",
-  white: "#FFFFFF",
-  cyan: "#06B6D4",
-  blue: "#2563EB",
-  muted: "#94A3B8",
-  green: "#10B981",
-  red: "#EF4444",
+  bg: "#EDF2FF",          // page background
+  surface: "#FFFFFF",     // cards
+  surfaceSoft: "#F4F6FF", // subtle areas
+  border: "#D4DCFF",
+  text: "#0F172A",
+  textMuted: "#64748B",
+  brand: "#2563EB",
+  brandStrong: "#1D4ED8",
+  success: "#16A34A",
+  danger: "#EF4444",
 };
 
 const AddMilkScreen = ({ navigation }: any) => {
@@ -46,20 +50,38 @@ const AddMilkScreen = ({ navigation }: any) => {
   const [date, setDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  /* --------------------------------------------------------
-      LOAD USER
-  -------------------------------------------------------- */
+  // CATTLE DROPDOWN
+  const [cattleList, setCattleList] = useState<any[]>([]);
+  const [cattleId, setCattleId] = useState<number | null>(null);
+  const [showCattleDropdown, setShowCattleDropdown] = useState(false);
+
+  // --------------------------------------------------------
+  // LOAD USER + CATTLE
+  // --------------------------------------------------------
   useEffect(() => {
     (async () => {
       const id = await AsyncStorage.getItem("userId");
-      if (id) setUserId(Number(id));
+      if (id) {
+        const parsed = Number(id);
+        setUserId(parsed);
+        loadCattle(parsed);
+      }
       setShift(moment().hour() < 12 ? "MORNING" : "EVENING");
     })();
   }, []);
 
-  /* --------------------------------------------------------
-      AUTO CALCULATE TOTAL
-  -------------------------------------------------------- */
+  const loadCattle = async (uid: number) => {
+    try {
+      const list = await getCattleByUser(uid);
+      setCattleList(list || []);
+    } catch (e) {
+      console.log("❌ Failed to load cattle list", e);
+    }
+  };
+
+  // --------------------------------------------------------
+  // AUTO CALCULATE TOTAL
+  // --------------------------------------------------------
   useEffect(() => {
     const qty = Number(milkQuantity) || 0;
     const f = Number(fat) || 0;
@@ -68,9 +90,9 @@ const AddMilkScreen = ({ navigation }: any) => {
     setTotal((qty * f * price).toFixed(2));
   }, [milkQuantity, fat, fatPrice]);
 
-  /* --------------------------------------------------------
-      DUPLICATE CHECK
-  -------------------------------------------------------- */
+  // --------------------------------------------------------
+  // DUPLICATE CHECK
+  // --------------------------------------------------------
   const checkDuplicate = async (checkDate: string, checkShift: string) => {
     if (!userId) return false;
 
@@ -79,14 +101,14 @@ const AddMilkScreen = ({ navigation }: any) => {
 
     const records = await getMilkEntries(userId, m, y);
 
-    return records.some(
+    return records?.some(
       (e: any) => e.date === checkDate && e.shift === checkShift
     );
   };
 
-  /* --------------------------------------------------------
-      SAVE ENTRY
-  -------------------------------------------------------- */
+  // --------------------------------------------------------
+  // SAVE ENTRY
+  // --------------------------------------------------------
   const handleSave = async () => {
     if (!milkQuantity.trim() || !fat.trim()) {
       Alert.alert("Missing Info", "Please fill all required fields.");
@@ -113,6 +135,7 @@ const AddMilkScreen = ({ navigation }: any) => {
     try {
       const entry = {
         userId,
+        cattleId: cattleId || undefined,
         day: moment(date).format("dddd").toUpperCase(),
         date: formattedDate,
         shift,
@@ -127,29 +150,103 @@ const AddMilkScreen = ({ navigation }: any) => {
 
       setMilkQuantity("");
       setFat("");
-
+      setCattleId(null);
     } catch (e) {
+      console.log("❌ Error while saving entry:", e);
       Alert.alert("Error", "Could not save entry.");
     } finally {
       setLoading(false);
     }
   };
 
-  /* --------------------------------------------------------
-      MAIN UI
-  -------------------------------------------------------- */
+  // --------------------------------------------------------
+  // UI
+  // --------------------------------------------------------
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Add Milk Entry 🥛</Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* HEADER */}
+        <View style={styles.headerRow}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [
+              styles.backBtn,
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Text style={styles.backArrow}>←</Text>
+          </Pressable>
 
+          <View style={{ flex: 1 }}>
+            <Text style={styles.header}>Add Milk Entry</Text>
+            <Text style={styles.headerSub}>
+              Capture today&apos;s collection & fat details
+            </Text>
+          </View>
+
+          <View style={styles.headerEmojiWrap}>
+            <Text style={styles.headerEmoji}>🥛</Text>
+          </View>
+        </View>
+
+        {/* CARD */}
         <View style={styles.card}>
-          {/* DATE */}
-          <Text style={styles.label}>Date</Text>
+          {/* CATTLE DROPDOWN */}
+          <Text style={styles.label}>Cattle (optional)</Text>
 
+          <Pressable
+            style={styles.input}
+            onPress={() => setShowCattleDropdown(!showCattleDropdown)}
+          >
+            <Text style={styles.inputText}>
+              {cattleId
+                ? (() => {
+                    const c = cattleList.find((x) => x.id === cattleId);
+                    return c
+                      ? `${c.cattlename} (${c.cattleId})`
+                      : "Select Cattle";
+                  })()
+                : "No Cattle (General Entry)"}
+            </Text>
+          </Pressable>
+
+          {showCattleDropdown && (
+            <View style={styles.dropdown}>
+              <Pressable
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setCattleId(null);
+                  setShowCattleDropdown(false);
+                }}
+              >
+                <Text style={styles.dropdownText}>No Cattle (General)</Text>
+              </Pressable>
+
+              {cattleList.map((c) => (
+                <Pressable
+                  key={c.id}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setCattleId(c.id);
+                    setShowCattleDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>
+                    {c.cattlename} ({c.cattleId})
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {/* DATE */}
+          <Text style={[styles.label, { marginTop: 12 }]}>Date</Text>
           <Pressable
             style={styles.input}
             onPress={() => setShowDatePicker(true)}
@@ -174,30 +271,32 @@ const AddMilkScreen = ({ navigation }: any) => {
 
           {/* SHIFT */}
           <Text style={[styles.label, { marginTop: 12 }]}>Shift</Text>
-
           <View style={styles.shiftRow}>
-            {["MORNING", "EVENING"].map((s) => (
-              <Pressable
-                key={s}
-                onPress={() => setShift(s as any)}
-                style={[
-                  styles.shiftBtn,
-                  shift === s && styles.shiftActive,
-                ]}
-              >
-                <Text
+            {["MORNING", "EVENING"].map((s) => {
+              const active = shift === s;
+              return (
+                <Pressable
+                  key={s}
+                  onPress={() => setShift(s as any)}
                   style={[
-                    styles.shiftTxt,
-                    shift === s && styles.shiftTxtActive,
+                    styles.shiftBtn,
+                    active && styles.shiftActive,
                   ]}
                 >
-                  {s === "MORNING" ? "Morning" : "Evening"}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={[
+                      styles.shiftTxt,
+                      active && styles.shiftTxtActive,
+                    ]}
+                  >
+                    {s === "MORNING" ? "Morning" : "Evening"}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-          {/* INPUTS */}
+          {/* MILK QTY */}
           <Text style={styles.label}>Milk Quantity (L)</Text>
           <TextInput
             style={styles.input}
@@ -205,39 +304,46 @@ const AddMilkScreen = ({ navigation }: any) => {
             onChangeText={setMilkQuantity}
             keyboardType="numeric"
             placeholder="e.g. 12.5"
-            placeholderTextColor={theme.muted}
+            placeholderTextColor={theme.textMuted}
           />
 
+          {/* FAT */}
           <Text style={styles.label}>Fat (%)</Text>
           <TextInput
             style={styles.input}
             value={fat}
             onChangeText={setFat}
             keyboardType="numeric"
-            placeholder="e.g. 4.2"
-            placeholderTextColor={theme.muted}
+            placeholder="e.g. 4.5"
+            placeholderTextColor={theme.textMuted}
           />
 
           {/* FAT PRICE */}
           <View style={styles.row}>
             <Text style={styles.label}>Fat Price (₹)</Text>
-
             <Pressable onPress={() => setIsEditing(!isEditing)}>
-              <Text style={styles.edit}>{isEditing ? "Done" : "Edit"}</Text>
+              <Text style={styles.edit}>
+                {isEditing ? "Done" : "Edit"}
+              </Text>
             </Pressable>
           </View>
 
           <TextInput
-            style={[styles.input, !isEditing && { opacity: 0.4 }]}
+            style={[
+              styles.input,
+              !isEditing && { opacity: 0.6 },
+            ]}
             value={fatPrice}
             editable={isEditing}
             keyboardType="numeric"
             onChangeText={setFatPrice}
+            placeholder="Price per fat unit"
+            placeholderTextColor={theme.textMuted}
           />
 
           {/* TOTAL */}
           <View style={styles.totalBox}>
-            <Text style={styles.totalLabel}>Total Payment</Text>
+            <Text style={styles.totalLabel}>Estimated Payment</Text>
             <Text style={styles.totalValue}>₹ {total}</Text>
           </View>
 
@@ -247,7 +353,8 @@ const AddMilkScreen = ({ navigation }: any) => {
             disabled={loading}
             style={({ pressed }) => [
               styles.saveBtn,
-              pressed && { opacity: 0.7 },
+              pressed && { opacity: 0.85 },
+              loading && { opacity: 0.7 },
             ]}
           >
             {loading ? (
@@ -261,11 +368,11 @@ const AddMilkScreen = ({ navigation }: any) => {
           <Pressable
             onPress={() => navigation.navigate("MilkRecord")}
             style={({ pressed }) => [
-              styles.recordBtnGlass,
-              pressed && { opacity: 0.7 },
+              styles.recordBtn,
+              pressed && { opacity: 0.85 },
             ]}
           >
-            <Text style={styles.recordTxtGlass}>📊 View Milk Records</Text>
+            <Text style={styles.recordTxt}>📊 View Milk Records</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -275,47 +382,111 @@ const AddMilkScreen = ({ navigation }: any) => {
 
 export default AddMilkScreen;
 
-/* --------------------------------------------------------
-      STYLES
--------------------------------------------------------- */
+// --------------------------------------------------------
+// STYLES
+// --------------------------------------------------------
 const styles = StyleSheet.create({
-  container: { padding: 18 },
+  container: {
+    padding: 20,
+    paddingBottom: 40,
+    backgroundColor: theme.bg,
+    flexGrow: 1,
+  },
 
+  // Header
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  backArrow: {
+    fontSize: 18,
+    color: theme.text,
+  },
   header: {
     fontSize: 22,
     fontWeight: "800",
-    color: theme.white,
-    textAlign: "center",
-    marginBottom: 14,
+    color: theme.text,
+  },
+  headerSub: {
+    fontSize: 13,
+    color: theme.textMuted,
+    marginTop: 2,
+  },
+  headerEmojiWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: theme.surfaceSoft,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  headerEmoji: {
+    fontSize: 22,
   },
 
+  // Card
   card: {
     backgroundColor: theme.surface,
-    borderRadius: 14,
+    borderRadius: 22,
     padding: 16,
     borderWidth: 1,
     borderColor: theme.border,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
 
   label: {
-    fontSize: 14,
-    color: theme.muted,
+    fontSize: 13,
+    color: theme.textMuted,
     fontWeight: "600",
     marginBottom: 6,
   },
 
   input: {
-    backgroundColor: theme.glass,
+    backgroundColor: theme.surfaceSoft,
     borderWidth: 1,
     borderColor: theme.border,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: 11,
     paddingHorizontal: 14,
-    color: theme.white,
+    color: theme.text,
     marginBottom: 12,
   },
+  inputText: {
+    color: theme.text,
+    fontSize: 15,
+  },
 
-  inputText: { color: theme.white, fontSize: 15 },
+  dropdown: {
+    backgroundColor: theme.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderColor: theme.border,
+  },
+  dropdownText: { color: theme.text, fontSize: 14 },
 
   row: {
     flexDirection: "row",
@@ -323,85 +494,94 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 4,
   },
+  edit: {
+    color: theme.brandStrong,
+    fontSize: 13,
+    fontWeight: "700",
+  },
 
-  edit: { color: theme.blue, fontSize: 13, fontWeight: "700" },
-
+  // Shift buttons
   shiftRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
   },
-
   shiftBtn: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: theme.glass,
+    borderRadius: 999,
+    backgroundColor: theme.surfaceSoft,
     borderWidth: 1,
     borderColor: theme.border,
     alignItems: "center",
     marginHorizontal: 4,
   },
-
   shiftActive: {
-    backgroundColor: "rgba(37,99,235,0.25)",
-    borderColor: theme.blue,
+    backgroundColor: "#DBEAFE",
+    borderColor: theme.brandStrong,
+  },
+  shiftTxt: {
+    color: theme.textMuted,
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  shiftTxtActive: {
+    color: theme.brandStrong,
   },
 
-  shiftTxt: { color: theme.muted, fontWeight: "700" },
-
-  shiftTxtActive: { color: theme.white },
-
+  // Total
   totalBox: {
     marginTop: 16,
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "rgba(16,185,129,0.08)",
+    borderRadius: 14,
+    backgroundColor: "#EFF6FF",
     borderWidth: 1,
-    borderColor: theme.green,
+    borderColor: theme.brandStrong,
     alignItems: "center",
   },
-
-  totalLabel: { color: theme.green, fontSize: 14 },
-
+  totalLabel: {
+    color: theme.brandStrong,
+    fontSize: 13,
+    fontWeight: "600",
+  },
   totalValue: {
-    color: theme.green,
+    color: theme.brandStrong,
     fontSize: 22,
     fontWeight: "800",
     marginTop: 4,
   },
 
+  // Buttons
   saveBtn: {
-    backgroundColor: theme.blue,
+    backgroundColor: theme.brandStrong,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     marginTop: 18,
     alignItems: "center",
-    shadowColor: theme.blue,
-    shadowOpacity: 0.4,
+    shadowColor: theme.brandStrong,
+    shadowOpacity: 0.35,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
-
   saveTxt: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "900",
-  },
-
-  recordBtnGlass: {
-    marginTop: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
-
-  recordTxtGlass: {
-    color: theme.white,
     fontWeight: "800",
-    fontSize: 16,
+  },
+
+  recordBtn: {
+    marginTop: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    backgroundColor: theme.surfaceSoft,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  recordTxt: {
+    color: theme.brandStrong,
+    fontWeight: "700",
+    fontSize: 15,
   },
 });

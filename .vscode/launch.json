@@ -1,6 +1,8 @@
 {
   "version": "0.2.0",
   "configurations": [
+
+    
     {
       "name": "Attach to running Android app",
       "type": "reactnativedirect",
@@ -22,6 +24,14 @@
       "request": "attach",
       "cwd": "${workspaceFolder}",
       "platform": "ios"
-    }
+    },
+    {
+  "name": "Debug in Hermes Exponent - Experimental",
+  "request": "launch",
+  "type": "reactnativedirect",
+  "platform": "android",
+  "cwd": "${workspaceFolder}",
+  "enableHermesExperimental": true
+}
   ]
 }

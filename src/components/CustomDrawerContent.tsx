@@ -43,6 +43,10 @@ const CustomDrawerContent: React.FC<CustomDrawerContentProps> = ({
     { name: "Add Expense", icon: "💰", screen: "AddExpense" },
     { name: "Expense Records", icon: "🧾", screen: "ExpenseRecord" },
     { name: "Milk Records", icon: "🥛", screen: "MilkRecord" },
+    { name: "Animal Management", icon: "🧾", screen: "AnimalManagement" },
+    { name: "Labour Management", icon: "🧾", screen: "LabourManagement" },
+    { name: "Labour Profile", icon: "🧾", screen: "LabourProfile" },
+  
     { name: "Settings", icon: "⚙️", screen: "Settings" },
   ];
 

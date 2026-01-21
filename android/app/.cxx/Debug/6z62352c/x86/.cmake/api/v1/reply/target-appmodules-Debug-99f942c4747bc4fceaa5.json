@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "C:/Users/91957/MyFarmer/android/app/build/intermediates/cxx/Debug/6z62352c/obj/arm64-v8a/libappmodules.so"
+			"path" : "C:/Users/91957/MyFarmer/android/app/build/intermediates/cxx/Debug/6z62352c/obj/x86/libappmodules.so"
 		}
 	],
 	"backtrace" : 3,
@@ -25,8 +25,7 @@
 			"C:/Users/91957/MyFarmer/node_modules/react-native/ReactCommon/cmake-utils/react-native-flags.cmake",
 			"C:/Users/91957/MyFarmer/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt",
 			"C:/Users/91957/MyFarmer/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
-			"C:/Users/91957/MyFarmer/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
-			"C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt"
+			"C:/Users/91957/MyFarmer/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt"
 		],
 		"nodes" : 
 		[
@@ -111,15 +110,6 @@
 				"file" : 5,
 				"line" : 85,
 				"parent" : 14
-			},
-			{
-				"file" : 6
-			},
-			{
-				"command" : 6,
-				"file" : 6,
-				"line" : 65,
-				"parent" : 16
 			}
 		]
 	},
@@ -219,10 +209,6 @@
 				{
 					"backtrace" : 15,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-screens/android/src/main/jni"
-				},
-				{
-					"backtrace" : 17,
-					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni"
 				},
 				{
 					"backtrace" : 4,
@@ -334,6 +320,10 @@
 				},
 				{
 					"backtrace" : 4,
+					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni"
+				},
+				{
+					"backtrace" : 4,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/."
 				},
 				{
@@ -396,10 +386,6 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a"
-		},
-		{
-			"backtrace" : 4,
 			"id" : "react_codegen_rngesturehandler_codegen::@39f233abcd2c728bc6ec"
 		},
 		{
@@ -408,7 +394,7 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d"
+			"id" : "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a"
 		},
 		{
 			"backtrace" : 4,
@@ -420,11 +406,15 @@
 		},
 		{
 			"backtrace" : 4,
+			"id" : "react_codegen_rnworklets::@68f58d84d4754f193387"
+		},
+		{
+			"backtrace" : 4,
 			"id" : "react_codegen_safeareacontext::@7984cd80db47aa7b952a"
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnworklets::@68f58d84d4754f193387"
+			"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d"
 		}
 	],
 	"id" : "appmodules::@6890427a1f51a3e7e1df",
@@ -433,42 +423,42 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-Wl,-z,max-page-size=16384 -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments",
+				"fragment" : "-Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments",
 				"role" : "flags"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\arm64-v8a\\libreact_codegen_rnpicker.so",
+				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\x86\\libreact_codegen_rnpicker.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\arm64-v8a\\libreact_codegen_safeareacontext.so",
+				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\x86\\libreact_codegen_safeareacontext.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\arm64-v8a\\libreact_codegen_rnscreens.so",
+				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\x86\\libreact_codegen_rnscreens.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\arm64-v8a\\libreact_codegen_rnsvg.so",
+				"fragment" : "C:\\Users\\91957\\MyFarmer\\android\\app\\build\\intermediates\\cxx\\Debug\\6z62352c\\obj\\x86\\libreact_codegen_rnsvg.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 5,
-				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\fc4ca5ed306a0356b6e8e045eabf333c\\transformed\\fbjni-0.7.0\\prefab\\modules\\fbjni\\libs\\android.arm64-v8a\\libfbjni.so",
+				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\fc4ca5ed306a0356b6e8e045eabf333c\\transformed\\fbjni-0.7.0\\prefab\\modules\\fbjni\\libs\\android.x86\\libfbjni.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 5,
-				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\c49dadac905327471184fc70661e0688\\transformed\\react-android-0.82.1-debug\\prefab\\modules\\jsi\\libs\\android.arm64-v8a\\libjsi.so",
+				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\c49dadac905327471184fc70661e0688\\transformed\\react-android-0.82.1-debug\\prefab\\modules\\jsi\\libs\\android.x86\\libjsi.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 5,
-				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\c49dadac905327471184fc70661e0688\\transformed\\react-android-0.82.1-debug\\prefab\\modules\\reactnative\\libs\\android.arm64-v8a\\libreactnative.so",
+				"fragment" : "C:\\Users\\91957\\.gradle\\caches\\8.13\\transforms\\c49dadac905327471184fc70661e0688\\transformed\\react-android-0.82.1-debug\\prefab\\modules\\reactnative\\libs\\android.x86\\libreactnative.so",
 				"role" : "libraries"
 			},
 			{
@@ -579,337 +569,337 @@
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/rnasyncstorageJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/react/renderer/components/rnasyncstorage/rnasyncstorageJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/rnasyncstorage-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnasyncstorage_autolinked_build/CMakeFiles/react_codegen_rnasyncstorage.dir/rnasyncstorage-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/rnblurviewJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/react/renderer/components/rnblurview/rnblurviewJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/rnblurview-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnblurview_autolinked_build/CMakeFiles/react_codegen_rnblurview.dir/rnblurview-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/RNDateTimePickerCGen-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/RNDateTimePickerCGen-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/RNDateTimePickerCGenJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/RNDateTimePickerCGenJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNDateTimePickerCGen_autolinked_build/CMakeFiles/react_codegen_RNDateTimePickerCGen.dir/react/renderer/components/RNDateTimePickerCGen/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/lottiereactnative-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/lottiereactnative-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/lottiereactnativeJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/lottiereactnative_autolinked_build/CMakeFiles/react_codegen_lottiereactnative.dir/react/renderer/components/lottiereactnative/lottiereactnativeJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/react/renderer/components/rngesturehandler_codegen/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/bac033cd950586cef66695376748dd33/rngesturehandler_codegenJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/bac033cd950586cef66695376748dd33/rngesturehandler_codegenJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/rngesturehandler_codegen-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rngesturehandler_codegen_autolinked_build/CMakeFiles/react_codegen_rngesturehandler_codegen.dir/rngesturehandler_codegen-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/rnreanimatedJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/rnreanimatedJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/rnreanimated-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/rnreanimated-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/RNVectorIconsSpec-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/RNVectorIconsSpec-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/RNVectorIconsSpecJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/RNVectorIconsSpecJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/RNVectorIconsSpec_autolinked_build/CMakeFiles/react_codegen_RNVectorIconsSpec.dir/react/renderer/components/RNVectorIconsSpec/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/ComponentDescriptors.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/ComponentDescriptors.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/EventEmitters.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/EventEmitters.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/Props.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/Props.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/ShadowNodes.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/ShadowNodes.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/States.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/States.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/rnworkletsJSI-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/rnworkletsJSI-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"isGenerated" : true,
-			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/arm64-v8a/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/rnworklets-generated.cpp.o",
+			"path" : "C:/Users/91957/MyFarmer/android/app/.cxx/Debug/6z62352c/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/rnworklets-generated.cpp.o",
 			"sourceGroupIndex" : 1
 		}
 	],

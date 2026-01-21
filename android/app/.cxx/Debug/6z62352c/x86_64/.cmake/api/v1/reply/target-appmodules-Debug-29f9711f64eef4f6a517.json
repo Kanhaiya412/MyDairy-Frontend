@@ -25,8 +25,7 @@
 			"C:/Users/91957/MyFarmer/node_modules/react-native/ReactCommon/cmake-utils/react-native-flags.cmake",
 			"C:/Users/91957/MyFarmer/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt",
 			"C:/Users/91957/MyFarmer/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
-			"C:/Users/91957/MyFarmer/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
-			"C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt"
+			"C:/Users/91957/MyFarmer/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt"
 		],
 		"nodes" : 
 		[
@@ -111,15 +110,6 @@
 				"file" : 5,
 				"line" : 85,
 				"parent" : 14
-			},
-			{
-				"file" : 6
-			},
-			{
-				"command" : 6,
-				"file" : 6,
-				"line" : 65,
-				"parent" : 16
 			}
 		]
 	},
@@ -219,10 +209,6 @@
 				{
 					"backtrace" : 15,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-screens/android/src/main/jni"
-				},
-				{
-					"backtrace" : 17,
-					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni"
 				},
 				{
 					"backtrace" : 4,
@@ -334,6 +320,10 @@
 				},
 				{
 					"backtrace" : 4,
+					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-svg/android/src/main/jni"
+				},
+				{
+					"backtrace" : 4,
 					"path" : "C:/Users/91957/MyFarmer/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/."
 				},
 				{
@@ -392,7 +382,7 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnpicker::@e8bb2e9e833f47d0d516"
+			"id" : "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a"
 		},
 		{
 			"backtrace" : 4,
@@ -404,11 +394,11 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a"
+			"id" : "react_codegen_rnpicker::@e8bb2e9e833f47d0d516"
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad"
+			"id" : "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65"
 		},
 		{
 			"backtrace" : 4,
@@ -416,7 +406,7 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65"
+			"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad"
 		},
 		{
 			"backtrace" : 4,

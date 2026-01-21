@@ -23,17 +23,20 @@ import { useNavigation } from "@react-navigation/native";
 
 const { width: screenWidth } = Dimensions.get("window");
 
+// ──────────────────────────────────────────────────────────
+// THEME — Dairy Professional White & Blue (Concept C)
+// ──────────────────────────────────────────────────────────
 const theme = {
-  bg: "#0F172A",
-  surface: "#0B1220",
-  glass: "rgba(255,255,255,0.04)",
-  glassStrong: "rgba(255,255,255,0.06)",
-  white: "#FFFFFF",
-  muted: "#94A3B8",
-  border: "rgba(255,255,255,0.06)",
-  blue: "#2563EB",
-  cyan: "#06B6D4",
-  green: "#10B981",
+  bg: "#EDF2FF",
+  surface: "#FFFFFF",
+  surfaceSoft: "#F4F6FF",
+  border: "#D4DCFF",
+  text: "#0F172A",
+  textMuted: "#64748B",
+  brand: "#2563EB",
+  brandStrong: "#1D4ED8",
+  accent: "#38BDF8",
+  success: "#16A34A",
   danger: "#EF4444",
 };
 
@@ -59,8 +62,8 @@ const sprintForIndex = (index: number, year: number, monthIndex: number) => {
   return { start: 21, end: daysInMonth };
 };
 
-/* ========== ULTRA PREMIUM NEON TILE COMPONENT ========== */
-const NeonTile = ({
+/* ========== PREMIUM BLUE BORDER TILE COMPONENT ========== */
+const StatTile = ({
   label,
   value,
   icon,
@@ -72,20 +75,19 @@ const NeonTile = ({
   delay?: number;
 }) => {
   return (
-    <Animatable.View animation="fadeInUp" delay={delay} style={styles.neonTileContainer}>
-      <LinearGradient
-        colors={["rgba(37,99,235,0.12)", "rgba(6,182,212,0.08)"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.neonTile}
-      >
-        <View style={styles.neonIconBox}>
-          <Text style={styles.neonIcon}>{icon}</Text>
+    <Animatable.View
+      animation="fadeInUp"
+      delay={delay}
+      style={styles.tileContainer}
+    >
+      <View style={styles.tile}>
+        <View style={styles.tileIconBox}>
+          <Text style={styles.tileIcon}>{icon}</Text>
         </View>
 
-        <Text style={styles.neonValue}>{value}</Text>
-        <Text style={styles.neonLabel}>{label}</Text>
-      </LinearGradient>
+        <Text style={styles.tileValue}>{value}</Text>
+        <Text style={styles.tileLabel}>{label}</Text>
+      </View>
     </Animatable.View>
   );
 };
@@ -97,7 +99,9 @@ export default function MilkRecordScreen(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(moment().month());
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(
+    moment().month()
+  );
   const [selectedYear, setSelectedYear] = useState<number>(moment().year());
   const [selectedSprintIndex, setSelectedSprintIndex] = useState<number>(() => {
     const d = moment().date();
@@ -108,7 +112,9 @@ export default function MilkRecordScreen(): JSX.Element {
 
   const [chartMode, setChartMode] = useState<"milk" | "earnings">("milk");
 
+  // ────────────────────────────────────────────────────────
   // Fetch month records
+  // ────────────────────────────────────────────────────────
   const fetchMonth = useCallback(async (monthIndex: number, year: number) => {
     try {
       setLoading(true);
@@ -119,7 +125,7 @@ export default function MilkRecordScreen(): JSX.Element {
         return;
       }
       const userId = Number(uid);
-      const data = await getMilkEntries(userId, monthIndex, year); // expects monthIndex 0-11
+      const data = await getMilkEntries(userId, monthIndex, year);
       const arr = Array.isArray(data) ? data : data?.data ?? [];
       const normalized: MilkRecord[] = arr.map((r: any) => ({
         id: r.id,
@@ -133,7 +139,13 @@ export default function MilkRecordScreen(): JSX.Element {
         totalPayment:
           r.totalPayment !== undefined
             ? Number(r.totalPayment)
-            : Number(((r.milkQuantity || 0) * (r.fat || 0) * (r.fatPrice || 0)).toFixed(2)),
+            : Number(
+                (
+                  (r.milkQuantity || 0) *
+                  (r.fat || 0) *
+                  (r.fatPrice || 0)
+                ).toFixed(2)
+              ),
       }));
       setRecords(normalized);
     } catch (e) {
@@ -162,7 +174,9 @@ export default function MilkRecordScreen(): JSX.Element {
 
   const sprintRangeForChart = useMemo(() => {
     const { start, end } = sprintRangeFull;
-    const isCurrentMonth = selectedMonthIndex === moment().month() && selectedYear === moment().year();
+    const isCurrentMonth =
+      selectedMonthIndex === moment().month() &&
+      selectedYear === moment().year();
     if (!isCurrentMonth) return { start, end };
     const today = moment().date();
     const cappedEnd = Math.min(end, today);
@@ -188,7 +202,8 @@ export default function MilkRecordScreen(): JSX.Element {
 
     for (const r of records) {
       const dd = moment(r.date, "YYYY-MM-DD");
-      if (dd.month() !== selectedMonthIndex || dd.year() !== selectedYear) continue;
+      if (dd.month() !== selectedMonthIndex || dd.year() !== selectedYear)
+        continue;
       const day = dd.date();
       if (day < fullStart || day > fullEnd) continue;
       totalMilk += r.milkQuantity;
@@ -201,7 +216,8 @@ export default function MilkRecordScreen(): JSX.Element {
       totalMilk,
       totalEarn,
       totalEntries,
-      avgFatOverall: totalEntries > 0 ? Number((fatSum / totalEntries).toFixed(2)) : 0,
+      avgFatOverall:
+        totalEntries > 0 ? Number((fatSum / totalEntries).toFixed(2)) : 0,
     };
   }, [records, sprintRangeFull, selectedMonthIndex, selectedYear]);
 
@@ -211,10 +227,23 @@ export default function MilkRecordScreen(): JSX.Element {
     const dataPoints = sprintDaysForChart.map((d) => {
       const items = records.filter((r) => {
         const dd = moment(r.date, "YYYY-MM-DD");
-        return dd.month() === selectedMonthIndex && dd.year() === selectedYear && dd.date() === d;
+        return (
+          dd.month() === selectedMonthIndex &&
+          dd.year() === selectedYear &&
+          dd.date() === d
+        );
       });
-      if (chartMode === "milk") return Number(items.reduce((s, it) => s + (it.milkQuantity || 0), 0).toFixed(2));
-      return Number(items.reduce((s, it) => s + (it.totalPayment || 0), 0).toFixed(2));
+      if (chartMode === "milk")
+        return Number(
+          items
+            .reduce((s, it) => s + (it.milkQuantity || 0), 0)
+            .toFixed(2)
+        );
+      return Number(
+        items
+          .reduce((s, it) => s + (it.totalPayment || 0), 0)
+          .toFixed(2)
+      );
     });
 
     return {
@@ -231,7 +260,6 @@ export default function MilkRecordScreen(): JSX.Element {
       if (!groups[key]) groups[key] = [];
       groups[key].push(r);
     }
-    // sort within group (morning first)
     Object.keys(groups).forEach((k) =>
       groups[k].sort((a, b) => {
         if (a.shift === b.shift) return 0;
@@ -242,16 +270,21 @@ export default function MilkRecordScreen(): JSX.Element {
     return groups;
   }, [records]);
 
-  // RENDER LOADING
+  // ────────────────────────────────────────────────────────
+  // LOADING STATE
+  // ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <View style={styles.loaderBox}>
-        <ActivityIndicator size="large" color={theme.cyan} />
+        <ActivityIndicator size="large" color={theme.brand} />
         <Text style={styles.loaderText}>Loading records…</Text>
       </View>
     );
   }
 
+  // ────────────────────────────────────────────────────────
+  // MAIN UI
+  // ────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
       {/* MONTH CHIPS */}
@@ -267,7 +300,6 @@ export default function MilkRecordScreen(): JSX.Element {
               <Pressable
                 onPress={() => {
                   setSelectedMonthIndex(index);
-                  // when month changes, reset sprint to default containing today's date if same month-year
                   const today = moment();
                   if (index === today.month() && selectedYear === today.year()) {
                     const d = today.date();
@@ -278,9 +310,19 @@ export default function MilkRecordScreen(): JSX.Element {
                     setSelectedSprintIndex(0);
                   }
                 }}
-                style={[styles.monthChip, active && styles.monthChipActive]}
+                style={[
+                  styles.monthChip,
+                  active && styles.monthChipActive,
+                ]}
               >
-                <Text style={[styles.monthChipText, active && styles.monthChipTextActive]}>{item.substring(0, 3)}</Text>
+                <Text
+                  style={[
+                    styles.monthChipText,
+                    active && styles.monthChipTextActive,
+                  ]}
+                >
+                  {item.substring(0, 3)}
+                </Text>
               </Pressable>
             );
           }}
@@ -291,51 +333,131 @@ export default function MilkRecordScreen(): JSX.Element {
       {/* SPRINT SELECT */}
       <View style={styles.sprintRow}>
         {(() => {
-          const daysInMonth = moment({ year: selectedYear, month: selectedMonthIndex }).daysInMonth();
+          const daysInMonth = moment({
+            year: selectedYear,
+            month: selectedMonthIndex,
+          }).daysInMonth();
           const labels = [`1–10`, `11–20`, `21–${daysInMonth}`];
           return labels.map((lbl, idx) => {
             const active = idx === selectedSprintIndex;
             return (
-              <Pressable key={lbl} onPress={() => setSelectedSprintIndex(idx)} style={[styles.sprintBtn, active && styles.sprintBtnActive]}>
-                <Text style={[styles.sprintBtnText, active && styles.sprintBtnTextActive]}>{lbl}</Text>
+              <Pressable
+                key={lbl}
+                onPress={() => setSelectedSprintIndex(idx)}
+                style={[styles.sprintBtn, active && styles.sprintBtnActive]}
+              >
+                <Text
+                  style={[
+                    styles.sprintBtnText,
+                    active && styles.sprintBtnTextActive,
+                  ]}
+                >
+                  {lbl}
+                </Text>
               </Pressable>
             );
           });
         })()}
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.contentContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.cyan} />}>
-        {/* ULTRA PREMIUM TILES */}
-        <View style={styles.premiumRow}>
-          <NeonTile icon="🥛" label="Total Milk" value={`${sprintAggregates.totalMilk.toFixed(2)} L`} delay={0} />
-          <NeonTile icon="💰" label="Earnings" value={`₹ ${sprintAggregates.totalEarn.toFixed(2)}`} delay={80} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.brand}
+          />
+        }
+      >
+        {/* SUMMARY TILES */}
+        <View style={styles.tileRow}>
+          <StatTile
+            icon="🥛"
+            label="Total Milk"
+            value={`${sprintAggregates.totalMilk.toFixed(2)} L`}
+            delay={0}
+          />
+          <StatTile
+            icon="💰"
+            label="Earnings"
+            value={`₹ ${sprintAggregates.totalEarn.toFixed(2)}`}
+            delay={80}
+          />
         </View>
 
-        <View style={styles.premiumRow}>
-          <NeonTile icon="🧪" label="Avg Fat" value={`${sprintAggregates.avgFatOverall.toFixed(2)}%`} delay={160} />
-          <NeonTile icon="📄" label="Entries" value={sprintAggregates.totalEntries} delay={240} />
+        <View style={styles.tileRow}>
+          <StatTile
+            icon="🧪"
+            label="Avg Fat"
+            value={`${sprintAggregates.avgFatOverall.toFixed(2)}%`}
+            delay={160}
+          />
+          <StatTile
+            icon="📄"
+            label="Entries"
+            value={sprintAggregates.totalEntries}
+            delay={240}
+          />
         </View>
 
-        {/* Chart */}
-        <Animatable.View animation="fadeInUp" delay={320} style={styles.chartCard}>
-          <LinearGradient colors={["#07102a", "#07102a"]} style={styles.chartHeader}>
+        {/* CHART CARD */}
+        <Animatable.View
+          animation="fadeInUp"
+          delay={320}
+          style={styles.chartCard}
+        >
+          <View style={styles.chartHeader}>
             <View>
-              <Text style={styles.chartTitle}>{chartMode === "milk" ? "Milk Trend" : "Earnings Trend"}</Text>
+              <Text style={styles.chartTitle}>
+                {chartMode === "milk" ? "Milk Trend" : "Earnings Trend"}
+              </Text>
               <Text style={styles.chartSub}>
-                {moment({ year: selectedYear, month: selectedMonthIndex }).format("MMMM YYYY")} • Sprint {sprintRangeFull.start}–{sprintRangeFull.end}
+                {moment({
+                  year: selectedYear,
+                  month: selectedMonthIndex,
+                }).format("MMMM YYYY")}{" "}
+                • {sprintRangeFull.start}–{sprintRangeFull.end}
               </Text>
             </View>
 
             <View style={styles.modeRow}>
-              <Pressable onPress={() => setChartMode("milk")} style={[styles.modeBtn, chartMode === "milk" && styles.modeBtnActive]}>
-                <Text style={[styles.modeTxt, chartMode === "milk" && styles.modeTxtActive]}>🥛 Milk</Text>
+              <Pressable
+                onPress={() => setChartMode("milk")}
+                style={[
+                  styles.modeBtn,
+                  chartMode === "milk" && styles.modeBtnActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.modeTxt,
+                    chartMode === "milk" && styles.modeTxtActive,
+                  ]}
+                >
+                  🥛 Milk
+                </Text>
               </Pressable>
 
-              <Pressable onPress={() => setChartMode("earnings")} style={[styles.modeBtn, chartMode === "earnings" && styles.modeBtnActive]}>
-                <Text style={[styles.modeTxt, chartMode === "earnings" && styles.modeTxtActive]}>💸 Earnings</Text>
+              <Pressable
+                onPress={() => setChartMode("earnings")}
+                style={[
+                  styles.modeBtn,
+                  chartMode === "earnings" && styles.modeBtnActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.modeTxt,
+                    chartMode === "earnings" && styles.modeTxtActive,
+                  ]}
+                >
+                  💸 Earnings
+                </Text>
               </Pressable>
             </View>
-          </LinearGradient>
+          </View>
 
           <View style={styles.chartBody}>
             {chartData.labels.length > 0 ? (
@@ -346,13 +468,23 @@ export default function MilkRecordScreen(): JSX.Element {
                 withInnerLines={true}
                 withOuterLines={false}
                 chartConfig={{
-                  backgroundGradientFrom: "transparent",
-                  backgroundGradientTo: "transparent",
+                  backgroundGradientFrom: "#FFFFFF",
+                  backgroundGradientTo: "#FFFFFF",
                   decimalPlaces: 1,
-                  color: (opacity = 1) => `rgba(6,182,212,${opacity})`,
-                  labelColor: () => "#9CA3AF",
-                  propsForDots: { r: "4", strokeWidth: "2", stroke: "#0F172A", fill: "#06B6D4" },
-                  propsForBackgroundLines: { stroke: "rgba(255,255,255,0.03)" },
+                  color: (opacity = 1) =>
+                    `rgba(37,99,235,${opacity})`,
+                  labelColor: () => theme.textMuted,
+                  propsForDots: {
+                    r: "4",
+                    strokeWidth: "2",
+                    stroke: "#FFFFFF",
+                    fill: theme.brand,
+                  },
+                  propsForBackgroundLines: {
+                    stroke: "rgba(148,163,184,0.2)",
+                  },
+                  fillShadowGradient: "#2563EB",
+                  fillShadowGradientOpacity: 0.15, // Area chart effect
                 }}
                 bezier
                 style={{ borderRadius: 12 }}
@@ -365,33 +497,65 @@ export default function MilkRecordScreen(): JSX.Element {
           </View>
         </Animatable.View>
 
-        {/* Date grouped list */}
+        {/* DATE-GROUPED LIST (Clean cards) */}
         {Object.keys(groupedByDate).length === 0 ? (
           <View style={styles.noDataBox}>
-            <Text style={styles.noDataText}>No entries for this month</Text>
+            <Text style={styles.noDataText}>
+              No entries for this month
+            </Text>
           </View>
         ) : (
           Object.entries(groupedByDate)
-            .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+            .sort(
+              (a, b) =>
+                new Date(b[0]).getTime() - new Date(a[0]).getTime()
+            )
             .map(([dateStr, items]) => (
-              <Animatable.View key={dateStr} animation="fadeInUp" style={styles.dayCard}>
+              <Animatable.View
+                key={dateStr}
+                animation="fadeInUp"
+                style={styles.dayCard}
+              >
                 <View style={styles.dayHeader}>
-                  <Text style={styles.dayHeaderText}>{moment(dateStr).format("ddd, DD MMM YYYY")}</Text>
+                  <Text style={styles.dayHeaderText}>
+                    {moment(dateStr).format("ddd, DD MMM YYYY")}
+                  </Text>
                   <Text style={styles.dayHeaderRight}>
-                    {items.reduce((s, it) => s + (it.milkQuantity || 0), 0).toFixed(2)} L • ₹{" "}
-                    {items.reduce((s, it) => s + (it.totalPayment || 0), 0).toFixed(2)}
+                    {items
+                      .reduce(
+                        (s, it) => s + (it.milkQuantity || 0),
+                        0
+                      )
+                      .toFixed(2)}{" "}
+                    L · ₹{" "}
+                    {items
+                      .reduce(
+                        (s, it) => s + (it.totalPayment || 0),
+                        0
+                      )
+                      .toFixed(2)}
                   </Text>
                 </View>
 
                 {items.map((it, idx) => (
                   <View key={idx} style={styles.entryRow}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.entryShift}>{it.shift === "MORNING" ? "🌅 Morning" : "🌇 Evening"}</Text>
-                      <Text style={styles.entryMeta}>Fat {it.fat}% • ₹ {it.fatPrice}/unit</Text>
+                      <Text style={styles.entryShift}>
+                        {it.shift === "MORNING"
+                          ? "🌅 Morning"
+                          : "🌇 Evening"}
+                      </Text>
+                      <Text style={styles.entryMeta}>
+                        Fat {it.fat ?? 0}% · ₹ {it.fatPrice ?? 0}/unit
+                      </Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
-                      <Text style={styles.entryMilk}>{(it.milkQuantity || 0).toFixed(2)} L</Text>
-                      <Text style={styles.entryEarn}>₹ {(it.totalPayment || 0).toFixed(2)}</Text>
+                      <Text style={styles.entryMilk}>
+                        {(it.milkQuantity || 0).toFixed(2)} L
+                      </Text>
+                      <Text style={styles.entryEarn}>
+                        ₹ {(it.totalPayment || 0).toFixed(2)}
+                      </Text>
                     </View>
                   </View>
                 ))}
@@ -402,12 +566,28 @@ export default function MilkRecordScreen(): JSX.Element {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* FAB — cast style as any to satisfy TypeScript inlined function style */}
+      {/* FAB – Add Milk */}
       <Pressable
         onPress={() => navigation.navigate("AddMilk" as any)}
-        style={({ pressed }: { pressed: boolean }) => ([styles.fab, pressed && { transform: [{ scale: 0.96 }] }] as any)}
+        style={({
+          pressed,
+        }: {
+          pressed: boolean;
+        }) =>
+          [
+            styles.fab,
+            pressed && { transform: [{ scale: 0.96 }] },
+          ] as any
+        }
       >
-        <Text style={styles.fabText}>＋</Text>
+        <LinearGradient
+          colors={[theme.brandStrong, theme.accent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.fabInner}
+        >
+          <Text style={styles.fabText}>＋</Text>
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -417,14 +597,19 @@ export default function MilkRecordScreen(): JSX.Element {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
 
-  loaderBox: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.bg },
-  loaderText: { color: theme.muted, marginTop: 8 },
+  loaderBox: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.bg,
+  },
+  loaderText: { color: theme.textMuted, marginTop: 8 },
 
-  /* month chips */
+  // Month chips
   monthRow: { paddingVertical: 10, paddingLeft: 12 },
   monthList: { paddingRight: 12 },
   monthChip: {
-    backgroundColor: theme.glass,
+    backgroundColor: theme.surfaceSoft,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
@@ -432,72 +617,218 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border,
   },
-  monthChipActive: { backgroundColor: "rgba(37,99,235,0.2)", borderColor: theme.blue },
-  monthChipText: { color: theme.muted, fontWeight: "700" },
-  monthChipTextActive: { color: theme.white, fontWeight: "900" },
+  monthChipActive: {
+    backgroundColor: "#DBEAFE",
+    borderColor: theme.brandStrong,
+  },
+  monthChipText: {
+    color: theme.textMuted,
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  monthChipTextActive: {
+    color: theme.brandStrong,
+    fontWeight: "900",
+  },
 
-  sprintRow: { flexDirection: "row", justifyContent: "center", gap: 10, marginBottom: 10 },
-  sprintBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.glass, borderWidth: 1, borderColor: theme.border },
-  sprintBtnActive: { backgroundColor: "rgba(37,99,235,0.2)", borderColor: theme.blue },
-  sprintBtnText: { color: theme.muted, fontWeight: "700" },
-  sprintBtnTextActive: { color: theme.white, fontWeight: "900" },
+  // Sprint chips
+  sprintRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 10,
+  },
+  sprintBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: theme.surfaceSoft,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  sprintBtnActive: {
+    backgroundColor: "#DBEAFE",
+    borderColor: theme.brandStrong,
+  },
+  sprintBtnText: {
+    color: theme.textMuted,
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  sprintBtnTextActive: {
+    color: theme.brandStrong,
+    fontWeight: "900",
+  },
 
   scroll: { flex: 1 },
   contentContainer: { paddingHorizontal: 14, paddingBottom: 24 },
 
-  /* premium neon tiles */
-  premiumRow: { flexDirection: "row", justifyContent: "space-between", marginVertical: 6 },
-
-  neonTileContainer: { flex: 1, marginHorizontal: 6 },
-  neonTile: {
-    paddingVertical: 20,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(255,255,255,0.02)",
-    alignItems: "center",
-    shadowColor: "#06B6D4",
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+  // Stat tiles
+  tileRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 6,
   },
-  neonIconBox: { marginBottom: 6, width: 48, height: 48, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.02)" },
-  neonIcon: { fontSize: 22 },
+  tileContainer: { flex: 1, marginHorizontal: 6 },
+  tile: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.border,
+    backgroundColor: theme.surface,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  tileIconBox: {
+    marginBottom: 6,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.surfaceSoft,
+  },
+  tileIcon: { fontSize: 20 },
+  tileValue: {
+    color: theme.brandStrong,
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+  tileLabel: {
+    color: theme.textMuted,
+    fontWeight: "600",
+    marginTop: 4,
+    fontSize: 12,
+  },
 
-  neonValue: { color: theme.white, fontSize: 20, fontWeight: "900", marginTop: 4 },
-  neonLabel: { color: theme.muted, fontWeight: "700", marginTop: 6 },
-
-  /* chart */
-  chartCard: { backgroundColor: theme.surface, marginTop: 10, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: theme.border },
-  chartHeader: { padding: 14, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  chartTitle: { color: theme.white, fontSize: 16, fontWeight: "900" },
-  chartSub: { color: theme.muted, fontSize: 12, marginTop: 2 },
+  // Chart
+  chartCard: {
+    backgroundColor: theme.surface,
+    marginTop: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: theme.border,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  chartHeader: {
+    padding: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  chartTitle: {
+    color: theme.text,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  chartSub: {
+    color: theme.textMuted,
+    fontSize: 12,
+    marginTop: 2,
+  },
   modeRow: { flexDirection: "row" },
-  modeBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: theme.border, marginLeft: 8 },
-  modeBtnActive: { backgroundColor: theme.white },
-  modeTxt: { color: theme.white, fontWeight: "700" },
-  modeTxtActive: { color: theme.blue, fontWeight: "900" },
+  modeBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: theme.surfaceSoft,
+    borderWidth: 1,
+    borderColor: theme.border,
+    marginLeft: 8,
+  },
+  modeBtnActive: {
+    backgroundColor: "#DBEAFE",
+    borderColor: theme.brandStrong,
+  },
+  modeTxt: {
+    color: theme.textMuted,
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  modeTxtActive: {
+    color: theme.brandStrong,
+    fontWeight: "800",
+  },
 
   chartBody: { padding: 12 },
-  emptyChart: { height: 180, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: theme.muted },
+  emptyChart: {
+    height: 180,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: { color: theme.textMuted },
 
-  /* list */
-  dayCard: { backgroundColor: theme.surface, borderRadius: 14, padding: 14, marginTop: 12, borderWidth: 1, borderColor: theme.border },
-  dayHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  dayHeaderText: { color: theme.white, fontWeight: "900", fontSize: 15 },
-  dayHeaderRight: { color: theme.muted, fontWeight: "700" },
+  // Date cards
+  dayCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  dayHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  dayHeaderText: {
+    color: theme.text,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  dayHeaderRight: {
+    color: theme.textMuted,
+    fontWeight: "600",
+    fontSize: 12,
+  },
 
-  entryRow: { flexDirection: "row", justifyContent: "space-between", marginVertical: 6 },
-  entryShift: { color: theme.white, fontWeight: "800" },
-  entryMeta: { color: theme.muted, marginTop: 2 },
-  entryMilk: { color: theme.white, fontWeight: "900", fontSize: 16 },
-  entryEarn: { color: theme.cyan, fontWeight: "900", fontSize: 16 },
+  entryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 6,
+  },
+  entryShift: {
+    color: theme.text,
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  entryMeta: {
+    color: theme.textMuted,
+    marginTop: 2,
+    fontSize: 12,
+  },
+  entryMilk: {
+    color: theme.text,
+    fontWeight: "800",
+    fontSize: 15,
+  },
+  entryEarn: {
+    color: theme.brandStrong,
+    fontWeight: "800",
+    fontSize: 15,
+    marginTop: 2,
+  },
 
   noDataBox: { alignItems: "center", padding: 30 },
-  noDataText: { color: theme.muted },
+  noDataText: { color: theme.textMuted },
 
-  /* FAB */
+  // FAB
   fab: {
     position: "absolute",
     bottom: Platform.OS === "ios" ? 34 : 24,
@@ -505,13 +836,25 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: theme.blue,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: theme.blue,
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowColor: "#2563EB",
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
     elevation: 10,
   },
-  fabText: { color: "#fff", fontSize: 36, fontWeight: "900", lineHeight: 38 },
+  fabInner: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fabText: {
+    color: "#FFFFFF",
+    fontSize: 32,
+    fontWeight: "900",
+    lineHeight: 34,
+  },
 });
