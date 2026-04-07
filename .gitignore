@@ -10,7 +10,7 @@ Thumbs.db
 node_modules/
 npm-debug.log*
 yarn-error.log*
-package-lock.json
+
 
 # Metro / React Native cache
 .expo/
@@ -91,6 +91,8 @@ coverage/
 # ------------------------
 .env
 .env.*.local
+
+android/app/.cxx/
 
 # ------------------------
 # Logs

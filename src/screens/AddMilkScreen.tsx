@@ -1,6 +1,3 @@
-// AddMilkScreen.tsx — Dairy Professional White & Blue Theme
-// Matches FarmerHome Concept-C dashboard UI
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -17,15 +14,15 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { addMilkEntry, getMilkEntries } from "../services/milkService";
+import { addMilkEntry, updateMilkEntry } from "../services/milkService";
 import { getCattleByUser } from "../services/cattleService";
 
-// Same design language as FarmerHome (Concept C)
 const theme = {
-  bg: "#EDF2FF",          // page background
-  surface: "#FFFFFF",     // cards
-  surfaceSoft: "#F4F6FF", // subtle areas
+  bg: "#EDF2FF",
+  surface: "#FFFFFF",
+  surfaceSoft: "#F4F6FF",
   border: "#D4DCFF",
   text: "#0F172A",
   textMuted: "#64748B",
@@ -35,13 +32,17 @@ const theme = {
   danger: "#EF4444",
 };
 
-const AddMilkScreen = ({ navigation }: any) => {
+const AddMilkScreen = ({ navigation, route }: any) => {
+  // ✅ If coming from MilkRecord for editing
+  const editEntry = route?.params?.editEntry || null;
+  const isEditMode = !!editEntry;
+
   const [milkQuantity, setMilkQuantity] = useState("");
   const [fat, setFat] = useState("");
   const [fatPrice, setFatPrice] = useState("8");
 
   const [total, setTotal] = useState("0");
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingFatPrice, setIsEditingFatPrice] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
@@ -56,7 +57,7 @@ const AddMilkScreen = ({ navigation }: any) => {
   const [showCattleDropdown, setShowCattleDropdown] = useState(false);
 
   // --------------------------------------------------------
-  // LOAD USER + CATTLE
+  // LOAD USER + CATTLE + PREFILL (EDIT)
   // --------------------------------------------------------
   useEffect(() => {
     (async () => {
@@ -66,7 +67,20 @@ const AddMilkScreen = ({ navigation }: any) => {
         setUserId(parsed);
         loadCattle(parsed);
       }
-      setShift(moment().hour() < 12 ? "MORNING" : "EVENING");
+
+      // ✅ If edit mode: prefill form
+      if (editEntry) {
+        setMilkQuantity(String(editEntry.milkQuantity ?? ""));
+        setFat(String(editEntry.fat ?? ""));
+        setFatPrice(String(editEntry.fatPrice ?? "8"));
+
+        setShift(editEntry.shift || "MORNING");
+        setDate(new Date(editEntry.date)); // date from backend LocalDate "YYYY-MM-DD"
+
+        setCattleId(editEntry?.cattleEntry?.id ?? null);
+      } else {
+        setShift(moment().hour() < 12 ? "MORNING" : "EVENING");
+      }
     })();
   }, []);
 
@@ -91,73 +105,68 @@ const AddMilkScreen = ({ navigation }: any) => {
   }, [milkQuantity, fat, fatPrice]);
 
   // --------------------------------------------------------
-  // DUPLICATE CHECK
+  // REACT QUERY MUTATION
   // --------------------------------------------------------
-  const checkDuplicate = async (checkDate: string, checkShift: string) => {
-    if (!userId) return false;
+  const queryClient = useQueryClient();
 
-    const m = moment(checkDate).month();
-    const y = moment(checkDate).year();
-
-    const records = await getMilkEntries(userId, m, y);
-
-    return records?.some(
-      (e: any) => e.date === checkDate && e.shift === checkShift
-    );
-  };
-
-  // --------------------------------------------------------
-  // SAVE ENTRY
-  // --------------------------------------------------------
-  const handleSave = async () => {
-    if (!milkQuantity.trim() || !fat.trim()) {
-      Alert.alert("Missing Info", "Please fill all required fields.");
-      return;
-    }
-
-    if (!userId) {
-      Alert.alert("Error", "User ID not found.");
-      return;
-    }
-
-    const formattedDate = moment(date).format("YYYY-MM-DD");
-
-    if (await checkDuplicate(formattedDate, shift)) {
+  const mutation = useMutation({
+    mutationFn: async (payload: any) => {
+      if (isEditMode) {
+        return updateMilkEntry(payload);
+      } else {
+        return addMilkEntry(payload);
+      }
+    },
+    onSettled: () => {
+      // ✅ Always refetch after error or success to keep server in sync
+      queryClient.invalidateQueries({ queryKey: ["milkEntries"] });
+    },
+    onSuccess: () => {
       Alert.alert(
-        "Duplicate Entry ❌",
-        `Entry already exists for ${formattedDate} (${shift}).`
+        isEditMode ? "Updated ✅" : "Success ✅",
+        isEditMode ? "Milk entry updated successfully!" : "Milk entry added!"
       );
-      return;
-    }
+      navigation.goBack();
+    },
+  });
 
-    setLoading(true);
+  // --------------------------------------------------------
+  // SAVE / UPDATE
+  // --------------------------------------------------------
+const handleSaveOrUpdate = async () => {
+  if (mutation.isPending) return;
 
-    try {
-      const entry = {
-        userId,
-        cattleId: cattleId || undefined,
-        day: moment(date).format("dddd").toUpperCase(),
-        date: formattedDate,
-        shift,
-        milkQuantity: Number(milkQuantity),
-        fat: Number(fat),
-        fatPrice: Number(fatPrice),
-      };
+  if (!milkQuantity.trim() || !fat.trim()) {
+    Alert.alert("Missing Info", "Please fill all required fields.");
+    return;
+  }
 
-      await addMilkEntry(entry);
+  if (!userId) {
+    Alert.alert("Error", "User ID not found.");
+    return;
+  }
 
-      Alert.alert("Success", "Milk entry added!");
+  const fatValue = Number(fat);
+  if (fatValue > 10) {
+    Alert.alert("Invalid Fat ⚠️", "Fat percentage cannot exceed 10.0%");
+    return;
+  }
 
-      setMilkQuantity("");
-      setFat("");
-      setCattleId(null);
-    } catch (e) {
-      console.log("❌ Error while saving entry:", e);
-      Alert.alert("Error", "Could not save entry.");
-    } finally {
-      setLoading(false);
-    }
+  const formattedDate = moment(date).format("YYYY-MM-DD");
+
+  const payload = {
+    userId,
+    cattleId: cattleId || null,
+    date: formattedDate,
+    shift,
+    milkQuantity: Number(milkQuantity),
+    fat: Number(fat),
+    fatPrice: Number(fatPrice),
   };
+
+  mutation.mutate(payload);
+};
+
 
   // --------------------------------------------------------
   // UI
@@ -184,9 +193,13 @@ const AddMilkScreen = ({ navigation }: any) => {
           </Pressable>
 
           <View style={{ flex: 1 }}>
-            <Text style={styles.header}>Add Milk Entry</Text>
+            <Text style={styles.header}>
+              {isEditMode ? "Edit Milk Entry" : "Add Milk Entry"}
+            </Text>
             <Text style={styles.headerSub}>
-              Capture today&apos;s collection & fat details
+              {isEditMode
+                ? "Update wrong entry details"
+                : "Capture today's collection & fat details"}
             </Text>
           </View>
 
@@ -250,9 +263,11 @@ const AddMilkScreen = ({ navigation }: any) => {
           <Pressable
             style={styles.input}
             onPress={() => setShowDatePicker(true)}
+            disabled={isEditMode} // ✅ optional: block date change during edit
           >
             <Text style={styles.inputText}>
               {moment(date).format("DD MMM YYYY")}
+              {isEditMode ? "  🔒" : ""}
             </Text>
           </Pressable>
 
@@ -277,19 +292,12 @@ const AddMilkScreen = ({ navigation }: any) => {
               return (
                 <Pressable
                   key={s}
-                  onPress={() => setShift(s as any)}
-                  style={[
-                    styles.shiftBtn,
-                    active && styles.shiftActive,
-                  ]}
+                  onPress={() => !isEditMode && setShift(s as any)} // ✅ lock shift in edit
+                  style={[styles.shiftBtn, active && styles.shiftActive]}
                 >
-                  <Text
-                    style={[
-                      styles.shiftTxt,
-                      active && styles.shiftTxtActive,
-                    ]}
-                  >
+                  <Text style={[styles.shiftTxt, active && styles.shiftTxtActive]}>
                     {s === "MORNING" ? "Morning" : "Evening"}
+                    {isEditMode && active ? " 🔒" : ""}
                   </Text>
                 </Pressable>
               );
@@ -321,20 +329,17 @@ const AddMilkScreen = ({ navigation }: any) => {
           {/* FAT PRICE */}
           <View style={styles.row}>
             <Text style={styles.label}>Fat Price (₹)</Text>
-            <Pressable onPress={() => setIsEditing(!isEditing)}>
+            <Pressable onPress={() => setIsEditingFatPrice(!isEditingFatPrice)}>
               <Text style={styles.edit}>
-                {isEditing ? "Done" : "Edit"}
+                {isEditingFatPrice ? "Done" : "Edit"}
               </Text>
             </Pressable>
           </View>
 
           <TextInput
-            style={[
-              styles.input,
-              !isEditing && { opacity: 0.6 },
-            ]}
+            style={[styles.input, !isEditingFatPrice && { opacity: 0.6 }]}
             value={fatPrice}
-            editable={isEditing}
+            editable={isEditingFatPrice}
             keyboardType="numeric"
             onChangeText={setFatPrice}
             placeholder="Price per fat unit"
@@ -347,33 +352,37 @@ const AddMilkScreen = ({ navigation }: any) => {
             <Text style={styles.totalValue}>₹ {total}</Text>
           </View>
 
-          {/* SAVE BUTTON */}
+          {/* SAVE / UPDATE BUTTON */}
           <Pressable
-            onPress={handleSave}
-            disabled={loading}
+            onPress={handleSaveOrUpdate}
+            disabled={mutation.isPending}
             style={({ pressed }) => [
               styles.saveBtn,
               pressed && { opacity: 0.85 },
-              loading && { opacity: 0.7 },
+              mutation.isPending && { opacity: 0.7 },
             ]}
           >
-            {loading ? (
+            {mutation.isPending ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveTxt}>Save Entry</Text>
+              <Text style={styles.saveTxt}>
+                {isEditMode ? "Update Entry" : "Save Entry"}
+              </Text>
             )}
           </Pressable>
 
           {/* VIEW RECORD BUTTON */}
-          <Pressable
-            onPress={() => navigation.navigate("MilkRecord")}
-            style={({ pressed }) => [
-              styles.recordBtn,
-              pressed && { opacity: 0.85 },
-            ]}
-          >
-            <Text style={styles.recordTxt}>📊 View Milk Records</Text>
-          </Pressable>
+          {!isEditMode && (
+            <Pressable
+              onPress={() => navigation.navigate("MilkRecord")}
+              style={({ pressed }) => [
+                styles.recordBtn,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Text style={styles.recordTxt}>📊 View Milk Records</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -393,7 +402,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  // Header
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -433,11 +441,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 8,
   },
-  headerEmoji: {
-    fontSize: 22,
-  },
+  headerEmoji: { fontSize: 22 },
 
-  // Card
   card: {
     backgroundColor: theme.surface,
     borderRadius: 22,
@@ -500,7 +505,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // Shift buttons
   shiftRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -525,11 +529,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 13,
   },
-  shiftTxtActive: {
-    color: theme.brandStrong,
-  },
+  shiftTxtActive: { color: theme.brandStrong },
 
-  // Total
   totalBox: {
     marginTop: 16,
     padding: 14,
@@ -551,7 +552,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Buttons
   saveBtn: {
     backgroundColor: theme.brandStrong,
     paddingVertical: 14,

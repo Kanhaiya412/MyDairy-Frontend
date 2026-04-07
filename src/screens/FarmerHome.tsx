@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import moment from 'moment';
 import { LineChart } from 'react-native-chart-kit';
@@ -484,82 +485,90 @@ const DashboardScreen = ({
 // Container: fetch data + compute aggregates
 // ────────────────────────────────────────────────────────────────────────────────
 const FarmerHome = () => {
-  const [user, setUser] = useState<any>(null);
   const [notifications] = useState<number>(3);
   const [showProfile, setShowProfile] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [entries, setEntries] = useState<any[]>([]);
-
   const navigation = useNavigation<DrawerNavigationProp<any>>();
 
-  const loadAll = async () => {
-    try {
-      setLoading(true);
-      const u = await getUserInfo();
-      setUser(u);
+  // ✅ React Query: Fetch User Info
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: getUserInfo,
+  });
 
+  // ✅ React Query: Fetch Milk Entries with Caching
+  const {
+    data: entries = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['milkEntries'],
+    queryFn: async () => {
       const uid = await AsyncStorage.getItem('userId');
-      if (uid) {
-        const res = await getMilkEntries(Number(uid));
-        const data = Array.isArray(res) ? res : res?.data || [];
-        setEntries(data);
-      } else {
-        setEntries([]);
-      }
-    } catch (e) {
-      console.error('Failed to load dashboard data:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!uid) return [];
+      const res = await getMilkEntries(Number(uid));
+      // ✅ Guard: Ensure we return an array regardless of backend response shape
+      if (Array.isArray(res)) return res;
+      if (res && Array.isArray(res.data)) return res.data;
+      return [];
+    },
+    staleTime: 1000 * 60 * 5, // Keep data fresh for 5 mins
+  });
 
-  useEffect(() => {
-    loadAll();
-  }, []);
+  // ✅ Silent Background Refresh on Screen Focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadAll();
-    setRefreshing(false);
+  const onRefresh = () => {
+    refetch();
   };
 
   const todayKey = moment().format('YYYY-MM-DD');
   const yesterdayKey = moment().subtract(1, 'day').format('YYYY-MM-DD');
 
   const todayRecs = useMemo(
-    () => entries.filter((e) => e.date === todayKey),
+    () => {
+      if (!Array.isArray(entries)) return [];
+      return entries.filter((e: any) => 
+        moment(e.date).format('YYYY-MM-DD') === todayKey
+      );
+    },
     [entries, todayKey],
   );
 
   const todayMorning = useMemo(
-    () => todayRecs.find((e) => e.shift === 'MORNING') || null,
+    () => todayRecs.find((e: any) => e.shift === 'MORNING') || null,
     [todayRecs],
   );
   const todayEvening = useMemo(
-    () => todayRecs.find((e) => e.shift === 'EVENING') || null,
+    () => todayRecs.find((e: any) => e.shift === 'EVENING') || null,
     [todayRecs],
   );
 
   const todayTotals = useMemo(() => {
     const litres = todayRecs.reduce(
-      (s, r) => s + (r.milkQuantity || 0),
+      (s: number, r: any) => s + (r.milkQuantity || 0),
       0,
     );
     const earnings = todayRecs.reduce(
-      (s, r) => s + (r.totalPayment || 0),
+      (s: number, r: any) => s + (r.totalPayment || 0),
       0,
     );
-    const fatSum = todayRecs.reduce((s, r) => s + (r.fat || 0), 0);
+    const fatSum = todayRecs.reduce((s: number, r: any) => s + (r.fat || 0), 0);
     const avgFat = todayRecs.length ? fatSum / todayRecs.length : 0;
     return { litres, earnings, avgFat };
   }, [todayRecs]);
 
   const yesterdayLitres = useMemo(
-    () =>
-      entries
-        .filter((e) => e.date === yesterdayKey)
-        .reduce((s, r) => s + (r.milkQuantity || 0), 0),
+    () => {
+      if (!Array.isArray(entries)) return 0;
+      return entries
+        .filter((e: any) => moment(e.date).format('YYYY-MM-DD') === yesterdayKey)
+        .reduce((s: number, r: any) => s + (r.milkQuantity || 0), 0);
+    },
     [entries, yesterdayKey],
   );
 
@@ -573,15 +582,15 @@ const FarmerHome = () => {
       moment().subtract(i, 'days').format('YYYY-MM-DD'),
     );
     return days.reverse().map((d) => {
-      const dayRecs = entries.filter((e) => e.date === d);
+      const dayRecs = entries.filter((e: any) => e.date === d);
       return {
         date: d,
         litres: dayRecs.reduce(
-          (s, r) => s + (r.milkQuantity || 0),
+          (s: number, r: any) => s + (r.milkQuantity || 0),
           0,
         ),
         earnings: dayRecs.reduce(
-          (s, r) => s + (r.totalPayment || 0),
+          (s: number, r: any) => s + (r.totalPayment || 0),
           0,
         ),
       };
@@ -603,8 +612,8 @@ const FarmerHome = () => {
       notifications={notifications}
       showProfile={showProfile}
       navigation={navigation}
-      loading={loading}
-      refreshing={refreshing}
+      loading={isLoading}
+      refreshing={isRefetching}
       onRefresh={onRefresh}
       today={{
         morning: todayMorning,

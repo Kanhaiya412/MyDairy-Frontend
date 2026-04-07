@@ -20,6 +20,10 @@ import { LineChart } from "react-native-chart-kit";
 import LinearGradient from "react-native-linear-gradient";
 import * as Animatable from "react-native-animatable";
 import { useNavigation } from "@react-navigation/native";
+import { Alert } from "react-native";
+import { deleteMilkEntry } from "../services/milkService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -95,9 +99,7 @@ const StatTile = ({
 export default function MilkRecordScreen(): JSX.Element {
   const navigation = useNavigation<any>();
 
-  const [records, setRecords] = useState<MilkRecord[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(
     moment().month()
@@ -113,21 +115,22 @@ export default function MilkRecordScreen(): JSX.Element {
   const [chartMode, setChartMode] = useState<"milk" | "earnings">("milk");
 
   // ────────────────────────────────────────────────────────
-  // Fetch month records
+  // FETCH DATA — via TanStack Query
   // ────────────────────────────────────────────────────────
-  const fetchMonth = useCallback(async (monthIndex: number, year: number) => {
-    try {
-      setLoading(true);
+  const {
+    data: records = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["milkEntries", selectedMonthIndex, selectedYear],
+    queryFn: async () => {
       const uid = await AsyncStorage.getItem("userId");
-      if (!uid) {
-        setRecords([]);
-        setLoading(false);
-        return;
-      }
-      const userId = Number(uid);
-      const data = await getMilkEntries(userId, monthIndex, year);
+      if (!uid) return [];
+      const data = await getMilkEntries(Number(uid), selectedMonthIndex, selectedYear);
       const arr = Array.isArray(data) ? data : data?.data ?? [];
-      const normalized: MilkRecord[] = arr.map((r: any) => ({
+      
+      return arr.map((r: any) => ({
         id: r.id,
         userId: r.userId,
         date: r.date,
@@ -146,24 +149,19 @@ export default function MilkRecordScreen(): JSX.Element {
                   (r.fatPrice || 0)
                 ).toFixed(2)
               ),
-      }));
-      setRecords(normalized);
-    } catch (e) {
-      console.error("fetchMonth error:", e);
-      setRecords([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      })) as MilkRecord[];
+    },
+  });
 
-  useEffect(() => {
-    fetchMonth(selectedMonthIndex, selectedYear);
-  }, [fetchMonth, selectedMonthIndex, selectedYear]);
+  // ✅ Auto-refresh when returning to screen
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchMonth(selectedMonthIndex, selectedYear);
-    setRefreshing(false);
+    queryClient.invalidateQueries({ queryKey: ["milkEntries"] });
   };
 
   // sprint range & days for chart (cap to today if current month)
@@ -269,11 +267,27 @@ export default function MilkRecordScreen(): JSX.Element {
     );
     return groups;
   }, [records]);
-
+const handleDelete = async (id: number) => {
+  Alert.alert("Delete Entry?", "Are you sure?", [
+    { text: "Cancel", style: "cancel" },
+    {
+      text: "Delete",
+      style: "destructive",
+      onPress: async () => {
+        try {
+          await deleteMilkEntry(id);
+          queryClient.invalidateQueries({ queryKey: ["milkEntries"] });
+        } catch (err) {
+          Alert.alert("Error", "Failed to delete entry");
+        }
+      },
+    },
+  ]);
+};
   // ────────────────────────────────────────────────────────
   // LOADING STATE
   // ────────────────────────────────────────────────────────
-  if (loading) {
+  if (isLoading && records.length === 0) {
     return (
       <View style={styles.loaderBox}>
         <ActivityIndicator size="large" color={theme.brand} />
@@ -365,7 +379,7 @@ export default function MilkRecordScreen(): JSX.Element {
         contentContainerStyle={styles.contentContainer}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={isRefetching}
             onRefresh={onRefresh}
             tintColor={theme.brand}
           />
@@ -538,27 +552,51 @@ export default function MilkRecordScreen(): JSX.Element {
                 </View>
 
                 {items.map((it, idx) => (
-                  <View key={idx} style={styles.entryRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.entryShift}>
-                        {it.shift === "MORNING"
-                          ? "🌅 Morning"
-                          : "🌇 Evening"}
-                      </Text>
-                      <Text style={styles.entryMeta}>
-                        Fat {it.fat ?? 0}% · ₹ {it.fatPrice ?? 0}/unit
-                      </Text>
-                    </View>
-                    <View style={{ alignItems: "flex-end" }}>
-                      <Text style={styles.entryMilk}>
-                        {(it.milkQuantity || 0).toFixed(2)} L
-                      </Text>
-                      <Text style={styles.entryEarn}>
-                        ₹ {(it.totalPayment || 0).toFixed(2)}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
+  <View key={it.id ?? idx} style={styles.entryRow}>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.entryShift}>
+        {it.shift === "MORNING" ? "🌅 Morning" : "🌇 Evening"}
+      </Text>
+
+      <Text style={styles.entryMeta}>
+        Fat {it.fat ?? 0}% · ₹ {it.fatPrice ?? 0}/unit
+      </Text>
+    </View>
+
+    <View style={{ alignItems: "flex-end" }}>
+      <Text style={styles.entryMilk}>
+        {(it.milkQuantity || 0).toFixed(2)} L
+      </Text>
+
+      <Text style={styles.entryEarn}>
+        ₹ {(it.totalPayment || 0).toFixed(2)}
+      </Text>
+
+      {/* ✅ ACTION BUTTONS */}
+      <View style={styles.actionRow}>
+        {/* ✅ EDIT */}
+        <Pressable
+          onPress={() => navigation.navigate("AddMilk", { editEntry: it })}
+          style={styles.editBtn}
+        >
+          <Text style={styles.actionText}>✏️ Edit</Text>
+        </Pressable>
+
+        {/* ✅ DELETE */}
+        <Pressable
+         onPress={() => {
+  if (!it.id) return;
+  handleDelete(it.id);
+}}
+          style={styles.deleteBtn}
+        >
+          <Text style={styles.actionText}>🗑 Delete</Text>
+        </Pressable>
+      </View>
+    </View>
+  </View>
+))}
+
               </Animatable.View>
             ))
         )}
@@ -857,4 +895,34 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     lineHeight: 34,
   },
+  actionRow: {
+  flexDirection: "row",
+  gap: 8,
+  marginTop: 8,
+},
+
+editBtn: {
+  paddingVertical: 6,
+  paddingHorizontal: 10,
+  borderRadius: 10,
+  backgroundColor: "#DBEAFE",
+  borderWidth: 1,
+  borderColor: theme.brandStrong,
+},
+
+deleteBtn: {
+  paddingVertical: 6,
+  paddingHorizontal: 10,
+  borderRadius: 10,
+  backgroundColor: "#FEE2E2",
+  borderWidth: 1,
+  borderColor: theme.danger,
+},
+
+actionText: {
+  fontSize: 12,
+  fontWeight: "800",
+  color: theme.text,
+},
+
 });

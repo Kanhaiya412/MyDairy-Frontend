@@ -8,10 +8,13 @@ export interface LabourEntry {
   id: number;
   labourName: string;
   mobile?: string;
+  photoUrl?: string;
 
-  wageType: "DAILY" | "MONTHLY";
+  wageType: "DAILY" | "MONTHLY" | "YEARLY";
   dailyWage?: number;
   monthlySalary?: number;
+  yearlySalary?: number;
+  allowedLeaves?: number;
 
   role?: string;
 
@@ -32,8 +35,9 @@ export interface LabourSalaryEntry {
   presentDays?: number;
   manualDays?: number;
   totalSalary: number;
+  amountPaid: number;
 
-  paymentStatus: "PAID" | "UNPAID";
+  paymentStatus: "PAID" | "UNPAID" | "PARTIAL";
 
   generatedDate?: string;
   paidDate?: string;
@@ -48,19 +52,45 @@ export interface LabourEventDTO {
 }
 
 
+export interface LabourResponseDTO {
+  id: number;
+  labourName: string;
+  mobile: string;
+  photoUrl: string;
+  role: string;
+  wageType: string;
+  dailyWage?: number;
+  monthlySalary?: number;
+  yearlySalary?: number;
+  allowedLeaves?: number;
+  status: string;
+  joiningDate?: string;
+  endDate?: string;
+  totalWorkingDays?: number;
+}
+
+
 export interface LabourDashboardDTO {
   labourId: number;
   labourName: string;
   mobile?: string;
+  photoUrl?: string;
   wageType?: string;
   dailyWage?: number;
   monthlySalary?: number;
+  yearlySalary?: number;
+  allowedLeaves?: number;
+  status?: "ACTIVE" | "INACTIVE";
 
   activeContractId?: number | null;
   contractType?: string | null;
   contractAmount?: number | null;
   contractStartDate?: string | null;
   contractEndDate?: string | null;
+
+  joiningDate?: string;
+  endDate?: string;
+  totalWorkingDays?: number;
 
   totalDisbursed: number;
   totalRepaid: number;
@@ -69,6 +99,8 @@ export interface LabourDashboardDTO {
   outstandingWithInterest: number;
 
   totalSalaryPaid: number;
+  totalAccruedSalary?: number;
+  pendingSalary?: number;
   totalPenaltyUnpaid: number;
   totalPenaltyPaid: number;
 
@@ -79,17 +111,31 @@ export interface LabourDashboardDTO {
 /* ============================================================================
    BACKEND-MATCHING API FUNCTIONS
    ========================================================================== */
-
-export async function getLaboursByUser(
-  userId: number
-): Promise<LabourEntry[]> {
-  const res = await apiClient.get(`/labour/user/${userId}`);
+export async function getLaboursByUser(): Promise<LabourEntry[]> {
+  const res = await apiClient.get(`/labour/my`);
   return res.data;
 }
 
 export async function addLabour(payload: any): Promise<any> {
   const res = await apiClient.post(`/labour/add`, payload);
   return res.data;
+}
+
+export async function uploadLabourPhoto(photoUri: string, type: string, name: string): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", {
+    uri: photoUri,
+    type: type || "image/jpeg",
+    name: name || "photo.jpg",
+  } as any);
+
+  const res = await apiClient.post(`/labour/upload-photo`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data", // Tell Axios to boundary encode
+    },
+  });
+  // The backend now returns { photoUrl: "/uploads/labour/..." }
+  return res.data.photoUrl;
 }
 
 export async function updateLabour(
@@ -123,14 +169,44 @@ export async function getLabourById(labourId: number): Promise<LabourEntry> {
   return res.data;
 }
 
-export async function markSalaryPaid(salaryId: number): Promise<any> {
-  const res = await apiClient.post(`/labour/salary/${salaryId}/paid`, {});
+export async function markSalaryPaid(salaryId: number, amount: number): Promise<any> {
+  const res = await apiClient.post(`/labour/salary/${salaryId}/paid?amount=${amount}`, {});
   return res.data;
 }
+
+export async function payLumpsumSalary(labourId: number, amount: number): Promise<any> {
+  const res = await apiClient.post(`/labour/bulk-pay?labourId=${labourId}&amount=${amount}`, {});
+  return res.data;
+}
+
+export async function markBatchAttendance(data: {
+  date: string;
+  entries: {
+    labourId: number;
+    status: string;
+    remarks?: string;
+    shift?: string;
+    workHours?: number;
+  }[];
+}): Promise<any> {
+  const res = await apiClient.post("/labour/attendance/batch", data);
+  return res.data;
+}
+
 
 export async function getLabourDashboard(
   labourId: number
 ): Promise<LabourDashboardDTO> {
   const res = await apiClient.get(`/labour/${labourId}/dashboard`);
+  return res.data;
+}
+
+export async function markAttendance(payload: {
+  labourId: number;
+  date: string; // yyyy-MM-dd
+  status: "PRESENT" | "ABSENT";
+  remarks?: string;
+}) {
+  const res = await apiClient.post(`/labour/attendance/mark`, payload);
   return res.data;
 }

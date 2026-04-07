@@ -12,7 +12,7 @@ const config = {
     path.resolve(__dirname, 'android/app/src/main'),
   ],
   resolver: {
-    sourceExts: ['js', 'jsx', 'ts', 'tsx', 'json'],
+    sourceExts: ['js', 'jsx', 'ts', 'tsx', 'json', 'mjs', 'cjs'],
   },
 };
 

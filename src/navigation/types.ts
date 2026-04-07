@@ -12,7 +12,7 @@ export type RootDrawerParamList = {
 
   AnimalManagement: undefined;
 
-  LabourManagement: undefined;   // ⬅️ REQUIRED
+  LabourManagement: undefined;
 
   Payments?: undefined;
   Settings?: undefined;
@@ -23,11 +23,18 @@ export type RootStackParamList = {
   FarmerHome: undefined;
   DairyOwnerHome: undefined;
   AdminHome: undefined;
-ChatBot:undefined;
-
+  ChatBot: undefined;
+     LabourManagement: undefined;
   LabourProfile: { labourId: number };
-  LabourContract: { labourId: number };
- LabourLoan: { labourId: number; contractId?: number };
+  LabourLoan: { labourId: number; contractId?: number };
   LabourPenalty: { labourId: number };
   LabourAdvance: { labourId: number };
+  LabourAttendance: { labourId: number };
+  LabourSalary: { labourId: number };
 };
+
+/**
+ * ✅ Combined navigation list
+ * Drawer screen can navigate to Stack screens safely using this.
+ */
+export type RootNavigationParamList = RootDrawerParamList & RootStackParamList;

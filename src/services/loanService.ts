@@ -2,8 +2,8 @@ import apiClient from "./apiClient";
 
 /* ----------- Types ----------- */
 
-export interface LoanSummary {
-  id: number; // loanAccountId
+export interface LoanSummaryResponse {
+  accountId: number;
   totalDisbursed: number;
   totalRepaid: number;
   totalInterest: number;
@@ -12,12 +12,18 @@ export interface LoanSummary {
 
 export interface LoanTransaction {
   id: number;
-  loanAccountId: number;
   txnDate: string;
   type: "DISBURSEMENT" | "REPAYMENT" | "INTEREST";
   amount: number;
   reason?: string;
   notes?: string;
+}
+
+export interface LabourLoanAccount {
+  id: number;
+  monthlyInterestRate: number;
+  outstanding: number;
+  status: string;
 }
 
 export interface LoanDisbursementPayload {
@@ -35,25 +41,46 @@ export interface LoanRepaymentPayload {
 
 /* ----------- API ----------- */
 
-// GET summary using contractId
-export async function getLoanSummary(contractId: number) {
-  return (await apiClient.get(`/contract/${contractId}/loan/summary`)).data;
+// ✅ GET summary using labourId
+export async function getLoanSummary(
+  labourId: number
+): Promise<LoanSummaryResponse> {
+  const res = await apiClient.get(`/contract/loan/summary/${labourId}`);
+  return res.data;
 }
 
-export async function getLoanTransactions(accountId: number) {
-  return (await apiClient.get(`/contract/loan/${accountId}/transactions`)).data;
+export async function getLoanAccount(
+  labourId: number
+): Promise<LabourLoanAccount> {
+  const res = await apiClient.get(`/contract/loan/account/${labourId}`);
+  return res.data;
+}
+
+export async function getLoanTransactions(
+  accountId: number
+): Promise<LoanTransaction[]> {
+  const res = await apiClient.get(`/contract/loan/${accountId}/transactions`);
+  return res.data;
 }
 
 export async function addLoanDisbursement(
-  contractId: number,
+  labourId: number,
   payload: LoanDisbursementPayload
 ) {
-  return (await apiClient.post(`/contract/${contractId}/loan/disburse`, payload)).data;
+  const res = await apiClient.post(
+    `/contract/loan/disburse/${labourId}`,
+    payload
+  );
+  return res.data;
 }
 
 export async function addLoanRepayment(
-  contractId: number,
+  labourId: number,
   payload: LoanRepaymentPayload
 ) {
-  return (await apiClient.post(`/contract/${contractId}/loan/repay`, payload)).data;
+  const res = await apiClient.post(
+    `/contract/loan/repay/${labourId}`,
+    payload
+  );
+  return res.data;
 }

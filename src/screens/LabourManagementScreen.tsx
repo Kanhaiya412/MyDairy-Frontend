@@ -1,791 +1,495 @@
-// ===============================================
-// LabourManagementScreen.tsx — FINAL CLEAN VERSION
-// ===============================================
+// src/screens/LabourManagementScreen.tsx
 
 import React, { useEffect, useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   Alert,
-  Platform,
-  Pressable,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  Card,
-  Chip,
   Button,
-  TextInput,
   Text,
+  TextInput,
+  ActivityIndicator,
+  Dialog,
+  Portal,
+  Avatar,
+  IconButton,
   FAB,
-  Switch,
 } from "react-native-paper";
+import { launchImageLibrary } from "react-native-image-picker";
+import { useNavigation } from "@react-navigation/native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import {
   getLaboursByUser,
   addLabour,
-  updateLabour,
-  getSalaryHistory,
-  markSalaryPaid,
+  uploadLabourPhoto,
+  LabourEntry,
 } from "../services/labourService";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { RootDrawerParamList, RootStackParamList } from "../navigation/types";
-import { createDrawerNavigator } from "@react-navigation/drawer";
-import { createNavigationContainerRef } from "@react-navigation/native";
-// Navigation
-const Stack = createNativeStackNavigator<RootStackParamList>();
-const Drawer = createDrawerNavigator<RootDrawerParamList>(); // ⬅️ typed Drawer
-export const navigationRef = createNavigationContainerRef();
+import apiClient from "../services/apiClient";
 
-import { DrawerScreenProps } from "@react-navigation/drawer";
-// import { RootDrawerParamList } from "../navigation/types";
+export default function LabourManagementScreen() {
+  const navigation = useNavigation<any>();
 
-type Props = DrawerScreenProps<RootDrawerParamList, "LabourManagement">;
-// Types matching backend DTO
-type WageType = "DAILY" | "MONTHLY";
-type LabourStatus = "ACTIVE" | "INACTIVE";
+  const [labours, setLabours] = useState<LabourEntry[]>([]);
+  const [loadingLabours, setLoadingLabours] = useState(true);
 
-export interface LabourEntry {
-  id: number;
-  labourName: string;
-  mobile?: string;
-  wageType: WageType;
-  dailyWage?: number;
-  monthlySalary?: number;
-  role?: string;
-  joiningDate?: string;
-  status?: LabourStatus;
-  address?: string;
-  notes?: string;
-  useAttendance?: boolean;
-  referralBy?: string;
-}
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newMobile, setNewMobile] = useState("");
+  const [newWageType, setNewWageType] = useState<"DAILY" | "MONTHLY" | "YEARLY">("DAILY");
+  const [newDailyWage, setNewDailyWage] = useState("");
+  const [newMonthlySalary, setNewMonthlySalary] = useState("");
+  const [newYearlySalary, setNewYearlySalary] = useState("");
+  const [newAllowedLeaves, setNewAllowedLeaves] = useState("21");
+  const [savingNewLabour, setSavingNewLabour] = useState(false);
 
-export interface LabourSalaryEntry {
-  id: number;
-  month: number;
-  year: number;
-  presentDays?: number;
-  manualDays?: number;
-  totalSalary: number;
-  paymentStatus: "PAID" | "UNPAID";
-  generatedDate?: string;
-  paidDate?: string;
-}
+  // Photo Upload States
+  const [newPhotoUri, setNewPhotoUri] = useState<string | null>(null);
+  const [newPhotoType, setNewPhotoType] = useState<string>("");
+  const [newPhotoName, setNewPhotoName] = useState<string>("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-// ==========================================================================
-// Reusable Components
-// ==========================================================================
+  // Date States
+  const [newJoiningDate, setNewJoiningDate] = useState<Date>(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
-function InfoRow({ label, value }: { label: string; value: any }) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value ?? "—"}</Text>
-    </View>
-  );
-}
-
-function GlassCard({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Card mode="elevated" style={styles.glassCard}>
-      <View style={styles.cardHeaderRow}>
-        <View style={styles.cardAccentDot} />
-        <View>
-          <Text style={styles.sectionTitle}>{title}</Text>
-          {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
-        </View>
-      </View>
-      <Card.Content>{children}</Card.Content>
-    </Card>
-  );
-}
-
-function FormField({
-  label,
-  value,
-  onChangeText,
-  keyboardType = "default",
-  multiline,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (txt: string) => void;
-  keyboardType?: "default" | "numeric";
-  multiline?: boolean;
-}) {
-  return (
-    <View style={styles.fieldContainer}>
-      <TextInput
-        label={label}
-        mode="outlined"
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
-        multiline={multiline}
-        outlineStyle={styles.inputOutline}
-        style={[styles.input, multiline && { minHeight: 72 }]}
-      />
-    </View>
-  );
-}
-
-interface DateFieldProps {
-  label: string;
-  value: string;
-  onChange: (val: string) => void;
-}
-
-function DateField({ label, value, onChange }: DateFieldProps) {
-  const [showPicker, setShowPicker] = useState(false);
-  const [internalDate, setInternalDate] = useState<Date>(
-    value ? new Date(value) : new Date()
-  );
-
-  const handleChange = (_: any, selected?: Date) => {
-    if (selected) {
-      setInternalDate(selected);
-      onChange(formatYMD(selected));
-    }
-    if (Platform.OS !== "ios") setShowPicker(false);
+  const formatJoiningDate = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   };
 
-  return (
-    <View style={styles.fieldContainer}>
-      <Pressable onPress={() => setShowPicker(true)}>
-        <TextInput
-          label={label}
-          mode="outlined"
-          value={value}
-          editable={false}
-          outlineStyle={styles.inputOutline}
-          style={styles.input}
-        />
-      </Pressable>
+  const serverUrl = apiClient.defaults.baseURL?.replace('/api', '') || "http://10.22.247.26:8080";
 
-      {showPicker && (
-        <DateTimePicker
-          value={internalDate}
-          mode="date"
-          display="default"
-          onChange={handleChange}
-        />
-      )}
-    </View>
-  );
-}
-
-function formatYMD(date: Date) {
-  const y = date.getFullYear();
-  const m = `${date.getMonth() + 1}`.padStart(2, "0");
-  const d = `${date.getDate()}`.padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-// ==========================================================================
-// Main Component
-// ==========================================================================
-
-type TabKey = "overview" | "salary" | "form";
-
-export default function LabourManagementScreen({ navigation }: Props) {
-  const [tab, setTab] = useState<TabKey>("overview");
-  const [labours, setLabours] = useState<LabourEntry[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [isNew, setIsNew] = useState(false);
-
-  const [latestSalary, setLatestSalary] = useState<LabourSalaryEntry | null>(
-    null
-  );
-  const [salaryHistory, setSalaryHistory] = useState<LabourSalaryEntry[]>([]);
-
-  // Form
-  const [labourName, setLabourName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [wageType, setWageType] = useState<WageType>("DAILY");
-  const [dailyWage, setDailyWage] = useState("");
-  const [monthlySalary, setMonthlySalary] = useState("");
-  const [joiningDate, setJoiningDate] = useState("");
-  const [address, setAddress] = useState("");
-  const [status, setStatus] = useState<LabourStatus>("ACTIVE");
-  const [useAttendance, setUseAttendance] = useState(true);
-  const [notes, setNotes] = useState("");
-
-  const currentLabour = selectedId
-    ? labours.find((l) => l.id === selectedId)
-    : null;
-
-  // Load labour list
   useEffect(() => {
     loadLabours();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadLabours();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const loadLabours = async () => {
     try {
-      const id = await AsyncStorage.getItem("userId");
-      if (!id) return;
+      setLoadingLabours(true);
+      const list = await getLaboursByUser();
+      setLabours(list || []);
+    } catch {
+      Alert.alert("Error", "Failed to load labours");
+    } finally {
+      setLoadingLabours(false);
+    }
+  };
 
-      const data = await getLaboursByUser(Number(id));
-      setLabours(data);
-
-      if (data.length > 0) {
-        setSelectedId(data[0].id);
-        setIsNew(false);
-      } else {
-        setIsNew(true);
-        setTab("form");
+  const onPickPhoto = async () => {
+    try {
+      const result = await launchImageLibrary({ mediaType: "photo", quality: 0.5 });
+      if (result.didCancel) return;
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setNewPhotoUri(asset.uri || null);
+        setNewPhotoType(asset.type || "image/jpeg");
+        setNewPhotoName(asset.fileName || "photo.jpg");
       }
-    } catch (e) {
-      console.log("Load labour error:", e);
+    } catch (err: any) {
+      Alert.alert("Error", "Could not open gallery");
     }
   };
 
-  // Load salary when labour changes
-  useEffect(() => {
-    if (selectedId && !isNew) loadSalary(selectedId);
-    if (selectedId && !isNew) fillForm(selectedId);
-  }, [selectedId, isNew]);
-
-  const loadSalary = async (id: number) => {
+  const onAddLabour = async () => {
+    if (!newName.trim()) {
+      Alert.alert("Error", "Name is required");
+      return;
+    }
     try {
-      const res = await getSalaryHistory(id);
-      setSalaryHistory(res);
-      setLatestSalary(res[0] ?? null);
-    } catch {
-      setLatestSalary(null);
-      setSalaryHistory([]);
+      setSavingNewLabour(true);
+      let finalPhotoUrl = null;
+      if (newPhotoUri) {
+         setUploadingPhoto(true);
+         finalPhotoUrl = await uploadLabourPhoto(newPhotoUri, newPhotoType, newPhotoName);
+         setUploadingPhoto(false);
+      }
+
+      await addLabour({
+        labourName: newName.trim(),
+        mobile: newMobile,
+        photoUrl: finalPhotoUrl,
+        wageType: newWageType,
+        dailyWage: Number(newDailyWage) || 0,
+        monthlySalary: Number(newMonthlySalary) || 0,
+        yearlySalary: Number(newYearlySalary) || 0,
+        allowedLeaves: Number(newAllowedLeaves) || 0,
+        joiningDate: formatJoiningDate(newJoiningDate),
+      });
+      setShowAddForm(false);
+      setNewName("");
+      setNewMobile("");
+      setNewDailyWage("");
+      setNewMonthlySalary("");
+      setNewYearlySalary("");
+      setNewAllowedLeaves("21");
+      setNewJoiningDate(new Date());
+      setNewPhotoUri(null);
+      await loadLabours();
+    } catch (e: any) {
+      Alert.alert("Error", "Failed to add labour");
+    } finally {
+      setSavingNewLabour(false);
+      setUploadingPhoto(false);
     }
   };
 
-  const fillForm = (id: number) => {
-    const l = labours.find((x) => x.id === id);
-    if (!l) return;
+  const renderLabourCard = ({ item }: { item: LabourEntry }) => {
+    const fullPhotoUrl = item.photoUrl ? `${serverUrl}${item.photoUrl}` : null;
+    const isActive = item.status === "ACTIVE";
 
-    setLabourName(l.labourName);
-    setMobile(l.mobile || "");
-    setWageType(l.wageType);
-    setDailyWage(l.dailyWage ? String(l.dailyWage) : "");
-    setMonthlySalary(l.monthlySalary ? String(l.monthlySalary) : "");
-    setJoiningDate(l.joiningDate || "");
-    setAddress(l.address || "");
-    setNotes(l.notes || "");
-    setUseAttendance(l.useAttendance ?? true);
-    setStatus(l.status ?? "ACTIVE");
+    return (
+      <TouchableOpacity 
+        style={styles.card} 
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate("LabourProfile", { labourId: item.id })}
+      >
+        <View style={styles.cardContent}>
+          {fullPhotoUrl ? (
+            <Avatar.Image size={48} source={{ uri: fullPhotoUrl }} />
+          ) : (
+            <Avatar.Text size={48} label={item.labourName.substring(0, 2).toUpperCase()} style={styles.avatarPlaceholder} color="#64748B" />
+          )}
+          
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.workerName}>{item.labourName}</Text>
+            <Text style={styles.workerRole}>
+              {item.wageType === "MONTHLY" ? "Monthly Staff" : item.wageType === "YEARLY" ? "Yearly Contract" : "Daily Wage"}
+              {item.role ? ` • ${item.role}` : ""}
+            </Text>
+          </View>
+          <View style={styles.statusContainer}>
+             <View style={[styles.statusDot, isActive ? styles.statusActive : styles.statusInactive]} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
   };
-
-  const clearForm = () => {
-    setLabourName("");
-    setMobile("");
-    setWageType("DAILY");
-    setDailyWage("");
-    setMonthlySalary("");
-    setJoiningDate("");
-    setAddress("");
-    setNotes("");
-    setUseAttendance(true);
-    setStatus("ACTIVE");
-  };
-
-  // Payload
-  const buildPayload = () => ({
-    labourName,
-    mobile: mobile || null,
-    wageType,
-    dailyWage: wageType === "DAILY" ? Number(dailyWage) : null,
-    monthlySalary: wageType === "MONTHLY" ? Number(monthlySalary) : null,
-    joiningDate: joiningDate || null,
-    status,
-    address: address || null,
-    notes: notes || null,
-    role: "LABOUR",
-    useAttendance,
-    referralBy: null,
-  });
-
-  const save = async () => {
-    if (!labourName.trim()) return Alert.alert("Enter labour name");
-
-    try {
-      const payload = buildPayload();
-
-      if (isNew) await addLabour(payload);
-      else if (selectedId) await updateLabour(selectedId, payload);
-
-      loadLabours();
-      setTab("overview");
-      Alert.alert("Success", isNew ? "Labour added" : "Labour updated");
-    } catch {
-      Alert.alert("Error", "Failed to save");
-    }
-  };
-
-  const markPaid = async () => {
-    if (!latestSalary) return;
-    try {
-      await markSalaryPaid(latestSalary.id);
-      Alert.alert("Done", "Marked as Paid");
-      if (selectedId) loadSalary(selectedId);
-    } catch {
-      Alert.alert("Error");
-    }
-  };
-
-  // ==========================================================================
-  // UI
-  // ==========================================================================
 
   return (
-    <View style={styles.screen}>
-      {/* Header */}
-      <View style={styles.heroCard}>
-        <Text style={styles.heroTitle}>Labour Management</Text>
-        <Text style={styles.heroSubtitle}>
-          Track attendance, salary & payments
-        </Text>
+    <SafeAreaView style={styles.screen}>
+      <View style={styles.appBar}>
+        <IconButton icon="arrow-left" iconColor="#1E293B" size={24} onPress={() => navigation.goBack()} />
+        <Text style={styles.appBarTitle}>Labour Force</Text>
+        <IconButton icon="calendar-check" iconColor="#6366F1" size={24} onPress={() => navigation.navigate("LabourAttendance")} />
       </View>
 
-      {/* Labour Chips */}
-      <Card mode="elevated" style={styles.cattleCard}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {labours.map((l) => {
-            const active = selectedId === l.id;
-            return (
-              <Chip
-                key={l.id}
-                selected={active}
-                mode={active ? "flat" : "outlined"}
-                onPress={() => {
-                  setIsNew(false);
-                  setSelectedId(l.id);
-                  setTab("overview");
-                }}
-                style={[
-                  styles.cattleChip,
-                  active && styles.cattleChipActive,
-                ]}
-                textStyle={[
-                  styles.cattleChipText,
-                  active && styles.cattleChipTextActive,
-                ]}
-              >
-                {l.labourName}
-              </Chip>
-            );
-          })}
+      {loadingLabours ? (
+        <View style={styles.center}>
+          <ActivityIndicator color="#1E293B" />
+        </View>
+      ) : (
+        <FlatList
+          data={labours}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderLabourCard}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
 
-          <Chip
-            selected={isNew}
-            mode={isNew ? "flat" : "outlined"}
-            onPress={() => {
-              clearForm();
-              setIsNew(true);
-              setSelectedId(null);
-              setTab("form");
-            }}
-            style={[
-              styles.cattleChip,
-              isNew && styles.cattleChipActive,
-            ]}
-            textStyle={[
-              styles.cattleChipText,
-              isNew && styles.cattleChipTextActive,
-            ]}
-          >
-            + Add Labour
-          </Chip>
-        </ScrollView>
-      </Card>
+      <FAB icon="plus" label="Add New Staff" style={styles.fab} color="#FFFFFF" onPress={() => setShowAddForm(true)} />
 
-      {/* Tabs */}
-      <View style={styles.tabRow}>
-        {(["overview", "salary", "form"] as TabKey[]).map((key) => {
-          const active = tab === key;
+      <Portal>
+        <Dialog visible={showAddForm} onDismiss={() => setShowAddForm(false)} style={styles.dialog}>
+          <ScrollView style={{ maxHeight: 650 }} showsVerticalScrollIndicator={false}>
+            <Dialog.Content style={styles.dialogContent}>
+              <Text style={styles.modalTitle}>Add New Staff</Text>
 
-          return (
-            <Pressable
-              key={key}
-              onPress={() => setTab(key)}
-              style={[styles.tabPill, active && styles.tabPillActive]}
-            >
-              <Text style={[styles.tabText, active && styles.tabTextActive]}>
-                {key === "overview"
-                  ? "Overview"
-                  : key === "salary"
-                  ? "Salary"
-                  : isNew || !currentLabour
-                  ? "Add"
-                  : "Update"}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+              {/* Photo Section */}
+              <View style={styles.photoUploadContainer}>
+                <TouchableOpacity onPress={onPickPhoto} style={styles.avatarWrapper}>
+                  <View style={styles.avatarDashedBorder}>
+                    {newPhotoUri ? (
+                      <Avatar.Image size={96} source={{ uri: newPhotoUri }} />
+                    ) : (
+                      <Avatar.Icon size={96} icon="account" style={styles.avatarPlaceholderIcon} color="#94A3B8" />
+                    )}
+                  </View>
+                  <View style={styles.cameraBadge}>
+                    <IconButton icon="camera" size={16} iconColor="#FFF" />
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.photoUploadSub}>{uploadingPhoto ? "Uploading..." : "Select Profile Photo"}</Text>
+              </View>
 
-      {/* Content */}
-      <ScrollView style={{ marginBottom: 80 }}>
-        {/* Overview */}
-        {tab === "overview" && currentLabour && (
-          <>
-            <GlassCard title="Basic Details">
-              <InfoRow label="Name" value={currentLabour.labourName} />
-              <InfoRow label="Mobile" value={currentLabour.mobile} />
-              <InfoRow label="Joining Date" value={currentLabour.joiningDate} />
-              <InfoRow label="Status" value={currentLabour.status} />
-              <InfoRow label="Address" value={currentLabour.address} />
-            </GlassCard>
-
-            <GlassCard title="Compensation">
-              <InfoRow label="Wage Type" value={currentLabour.wageType} />
-              <InfoRow
-                label="Daily Wage"
-                value={
-                  currentLabour.dailyWage
-                    ? `₹${currentLabour.dailyWage}`
-                    : "—"
-                }
+              {/* Personal Details Section */}
+              <Text style={styles.sectionHeader}>PERSONAL DETAILS</Text>
+              
+              <TextInput 
+                label="Full Name" 
+                value={newName} 
+                onChangeText={setNewName} 
+                mode="outlined" 
+                style={styles.premiumInput}
+                outlineColor="#e2e8f0"
+                activeOutlineColor="#6366f1"
+                left={<TextInput.Icon icon="account-outline" color={focusedField === 'name' ? "#6366f1" : "#94a3b8"} />}
+                onFocus={() => setFocusedField('name')}
+                onBlur={() => setFocusedField(null)}
               />
-              <InfoRow
-                label="Monthly Salary"
-                value={
-                  currentLabour.monthlySalary
-                    ? `₹${currentLabour.monthlySalary}`
-                    : "—"
-                }
-              />
-            </GlassCard>
 
-           <Button
-  mode="contained"
-  style={{ margin: 10 }}
-  onPress={() =>
-    (navigation as any).navigate("LabourProfile", {
-      labourId: currentLabour.id,
-    })
-  }
->
-  Open Full Profile
-</Button>
-          </>
-        )}
+              <TextInput 
+                label="Mobile Number" 
+                value={newMobile} 
+                onChangeText={setNewMobile} 
+                mode="outlined" 
+                keyboardType="phone-pad" 
+                style={styles.premiumInput}
+                outlineColor="#e2e8f0"
+                activeOutlineColor="#6366f1"
+                left={<TextInput.Icon icon="phone-outline" color={focusedField === 'mobile' ? "#6366f1" : "#94a3b8"} />}
+                onFocus={() => setFocusedField('mobile')}
+                onBlur={() => setFocusedField(null)}
+              />
 
-        {/* Salary */}
-        {tab === "salary" && (
-          <>
-            <GlassCard title="Latest Salary">
-              <InfoRow
-                label="Total Salary"
-                value={latestSalary ? `₹${latestSalary.totalSalary}` : "—"}
-              />
-              <InfoRow
-                label="Present Days"
-                value={latestSalary?.presentDays ?? "—"}
-              />
-              <InfoRow
-                label="Manual Days"
-                value={latestSalary?.manualDays ?? "—"}
-              />
-              <InfoRow
-                label="Status"
-                value={latestSalary?.paymentStatus ?? "—"}
-              />
-              {latestSalary?.paymentStatus === "UNPAID" && (
-                <Button
-                  mode="contained"
-                  style={styles.primaryButton}
-                  onPress={markPaid}
+              <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
+                <View pointerEvents="none">
+                  <TextInput 
+                    label="Joining Date" 
+                    value={formatJoiningDate(newJoiningDate)} 
+                    mode="outlined" 
+                    style={styles.premiumInput}
+                    outlineColor="#e2e8f0"
+                    activeOutlineColor="#6366f1"
+                    left={<TextInput.Icon icon="calendar-outline" color={focusedField === 'date' ? "#6366f1" : "#94a3b8"} />}
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {/* Compensation Model Section */}
+              <Text style={styles.sectionHeader}>COMPENSATION MODEL</Text>
+              
+              <View style={styles.wageGrid}>
+                <TouchableOpacity 
+                  style={[styles.premiumWageCard, newWageType === "DAILY" && styles.premiumWageCardActive]} 
+                  onPress={() => setNewWageType("DAILY")}
                 >
-                  Mark as Paid
-                </Button>
+                  <IconButton icon="clock-outline" iconColor={newWageType === "DAILY" ? "#FFF" : "#64748B"} size={24} />
+                  <Text style={[styles.premiumWageCardTitle, newWageType === "DAILY" && styles.premiumWageCardTextActive]}>Daily</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.premiumWageCard, newWageType === "MONTHLY" && styles.premiumWageCardActive]} 
+                  onPress={() => setNewWageType("MONTHLY")}
+                >
+                  <IconButton icon="calendar-month" iconColor={newWageType === "MONTHLY" ? "#FFF" : "#64748B"} size={24} />
+                  <Text style={[styles.premiumWageCardTitle, newWageType === "MONTHLY" && styles.premiumWageCardTextActive]}>Monthly</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.premiumWageCard, newWageType === "YEARLY" && styles.premiumWageCardActive]} 
+                  onPress={() => setNewWageType("YEARLY")}
+                >
+                  <IconButton icon="briefcase-outline" iconColor={newWageType === "YEARLY" ? "#FFF" : "#64748B"} size={24} />
+                  <Text style={[styles.premiumWageCardTitle, newWageType === "YEARLY" && styles.premiumWageCardTextActive]}>Yearly</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Salary Details */}
+              <View style={styles.dynamicSalaryContainer}>
+                {newWageType === "DAILY" ? (
+                  <TextInput 
+                    label="Daily Wage (₹)" 
+                    value={newDailyWage} 
+                    onChangeText={setNewDailyWage} 
+                    keyboardType="numeric" 
+                    mode="outlined" 
+                    style={styles.premiumInput}
+                    left={<TextInput.Icon icon="cash" color="#6366f1" />}
+                  />
+                ) : newWageType === "MONTHLY" ? (
+                  <TextInput 
+                    label="Monthly Salary (₹)" 
+                    value={newMonthlySalary} 
+                    onChangeText={setNewMonthlySalary} 
+                    keyboardType="numeric" 
+                    mode="outlined" 
+                    style={styles.premiumInput}
+                    left={<TextInput.Icon icon="bank-outline" color="#6366f1" />}
+                  />
+                ) : (
+                  <>
+                    <TextInput 
+                      label="Annual Contract (₹)" 
+                      value={newYearlySalary} 
+                      onChangeText={setNewYearlySalary} 
+                      keyboardType="numeric" 
+                      mode="outlined" 
+                      style={styles.premiumInput}
+                      left={<TextInput.Icon icon="currency-inr" color="#6366f1" />}
+                    />
+                    <TextInput 
+                      label="Allowed Leaves" 
+                      value={newAllowedLeaves} 
+                      onChangeText={setNewAllowedLeaves} 
+                      keyboardType="numeric" 
+                      mode="outlined" 
+                      style={styles.premiumInput}
+                      left={<TextInput.Icon icon="beach" color="#6366f1" />}
+                    />
+                  </>
+                )}
+              </View>
+
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                date={newJoiningDate}
+                onConfirm={(d) => { setDatePickerVisibility(false); setNewJoiningDate(d); }}
+                onCancel={() => setDatePickerVisibility(false)}
+              />
+            </Dialog.Content>
+          </ScrollView>
+
+          <View style={styles.premiumActionButtons}>
+            <TouchableOpacity onPress={() => setShowAddForm(false)} style={styles.ghostButton}>
+              <Text style={styles.ghostButtonText}>DISCARD</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onAddLabour} disabled={savingNewLabour} style={styles.primaryActionButton}>
+              {savingNewLabour ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.primaryActionButtonText}>CREATE STAFF</Text>
               )}
-            </GlassCard>
-
-            <GlassCard title="Salary History">
-              {salaryHistory.map((s) => (
-                <Text
-                  key={s.id}
-                  style={{ color: "#E5E7EB", marginVertical: 4 }}
-                >
-                  {s.month}/{s.year} — ₹{s.totalSalary} ({s.paymentStatus})
-                </Text>
-              ))}
-            </GlassCard>
-          </>
-        )}
-
-        {/* Form */}
-        {tab === "form" && (
-          <GlassCard title={isNew ? "Add Labour" : "Update Labour"}>
-            <FormField
-              label="Name"
-              value={labourName}
-              onChangeText={setLabourName}
-            />
-            <FormField
-              label="Mobile"
-              value={mobile}
-              onChangeText={setMobile}
-              keyboardType="numeric"
-            />
-
-            <DateField
-              label="Joining Date"
-              value={joiningDate}
-              onChange={setJoiningDate}
-            />
-
-            {/* Wage Type */}
-            <View style={{ flexDirection: "row", marginTop: 6 }}>
-              {(["DAILY", "MONTHLY"] as WageType[]).map((wt) => (
-                <Chip
-                  key={wt}
-                  selected={wageType === wt}
-                  mode={wageType === wt ? "flat" : "outlined"}
-                  onPress={() => setWageType(wt)}
-                  style={styles.statusChip}
-                >
-                  {wt}
-                </Chip>
-              ))}
-            </View>
-
-            {wageType === "DAILY" && (
-              <FormField
-                label="Daily Wage (₹)"
-                value={dailyWage}
-                onChangeText={setDailyWage}
-                keyboardType="numeric"
-              />
-            )}
-
-            {wageType === "MONTHLY" && (
-              <FormField
-                label="Monthly Salary (₹)"
-                value={monthlySalary}
-                onChangeText={setMonthlySalary}
-                keyboardType="numeric"
-              />
-            )}
-
-            <FormField
-              label="Address"
-              value={address}
-              onChangeText={setAddress}
-            />
-
-            <FormField
-              label="Notes"
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-            />
-
-            <Button
-              mode="contained"
-              style={styles.primaryButton}
-              onPress={save}
-            >
-              {isNew ? "Add Labour" : "Update Labour"}
-            </Button>
-          </GlassCard>
-        )}
-      </ScrollView>
-
-      {/* Floating Action Buttons */}
-      <View style={styles.fabContainer}>
-        {/* Salary FAB */}
-        <FAB
-          style={styles.fabSecondary}
-          icon="cash"
-          onPress={() => setTab("salary")}
-        />
-
-        {/* Add/Edit FAB */}
-        <FAB
-          style={styles.fabPrimary}
-          icon="plus"
-          onPress={() => {
-            if (currentLabour && !isNew) fillForm(currentLabour.id);
-            else clearForm();
-
-            setIsNew(true);
-            setSelectedId(null);
-            setTab("form");
-          }}
-        />
-      </View>
-    </View>
+            </TouchableOpacity>
+          </View>
+        </Dialog>
+      </Portal>
+    </SafeAreaView>
   );
 }
 
-// ==========================================================================
-// Styles
-// ==========================================================================
-
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#020014",
-    padding: 12,
+  screen: { flex: 1, backgroundColor: "#F9FAFB" },
+  appBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#FFFFFF", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  appBarTitle: { fontSize: 18, fontWeight: "700", color: "#1E293B" },
+  listContainer: { padding: 16 },
+  card: { backgroundColor: "#FFFFFF", borderRadius: 12, marginBottom: 12, elevation: 2, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4 },
+  cardContent: { flexDirection: "row", alignItems: "center", padding: 16 },
+  avatarPlaceholder: { backgroundColor: "#F1F5F9" },
+  cardTextContainer: { flex: 1, marginLeft: 16 },
+  workerName: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
+  workerRole: { fontSize: 13, color: "#64748B" },
+  statusContainer: { paddingLeft: 10 },
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
+  statusActive: { backgroundColor: "#059669" },
+  statusInactive: { backgroundColor: "#94A3B8" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  
+  // 10x PREMIUM MODAL STYLES
+  dialog: { 
+    backgroundColor: "#FFFFFF", 
+    borderRadius: 24, 
+    overflow: 'hidden',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10
   },
+  dialogContent: { padding: 0 },
+  modalTitle: { fontSize: 22, fontWeight: '700', color: '#0f172a', marginBottom: 24 },
+  
+  // Photo Section
+  photoUploadContainer: { alignItems: 'center', marginBottom: 24 },
+  avatarWrapper: { position: 'relative' },
+  avatarDashedBorder: { 
+    padding: 4, 
+    borderRadius: 100, 
+    borderWidth: 2, 
+    borderColor: '#cbd5e1', 
+    borderStyle: 'dashed',
+    backgroundColor: '#f8fafc'
+  },
+  avatarPlaceholderIcon: { backgroundColor: 'transparent' },
+  cameraBadge: { 
+    position: 'absolute', 
+    bottom: 0, 
+    right: 0, 
+    backgroundColor: '#1e293b', 
+    borderRadius: 12, 
+    elevation: 4 
+  },
+  photoUploadSub: { fontSize: 13, color: '#64748b', marginTop: 12 },
 
-  heroCard: {
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 10,
-    backgroundColor: "rgba(10,10,30,0.95)",
-    borderWidth: 1.2,
-    borderColor: "rgba(129,140,248,0.6)",
+  // Sections
+  sectionHeader: { 
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: '#64748b', 
+    letterSpacing: 1.5, 
+    marginBottom: 16, 
+    marginTop: 8 
   },
-  heroTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-  },
-  heroSubtitle: {
-    color: "#9CA3AF",
-    marginTop: 4,
-  },
-
-  cattleCard: {
-    borderRadius: 16,
-    padding: 10,
-    backgroundColor: "rgba(12,10,40,0.96)",
-    borderWidth: 1,
-    borderColor: "rgba(129,140,248,0.6)",
-    marginBottom: 10,
-  },
-
-  cattleChip: {
-    marginRight: 8,
-    backgroundColor: "#111827",
-  },
-  cattleChipActive: {
-    backgroundColor: "#22C55E",
-  },
-  cattleChipText: {
-    color: "#E5E7EB",
-  },
-  cattleChipTextActive: {
-    color: "#022C22",
-    fontWeight: "700",
-  },
-
-  tabRow: {
-    flexDirection: "row",
-    backgroundColor: "rgba(12,10,40,0.96)",
-    borderRadius: 999,
-    padding: 4,
-    marginBottom: 10,
-  },
-  tabPill: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderRadius: 30,
-  },
-  tabPillActive: {
-    backgroundColor: "#22C55E",
-  },
-  tabText: {
-    color: "#9CA3AF",
-    fontWeight: "600",
-  },
-  tabTextActive: {
-    color: "#022C22",
-    fontWeight: "700",
-  },
-
-  glassCard: {
-    borderRadius: 18,
-    marginBottom: 12,
-    backgroundColor: "rgba(11,14,40,0.9)",
-    borderWidth: 1.2,
-    borderColor: "rgba(129,140,248,0.8)",
-    paddingBottom: 10,
-  },
-
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 4,
-  },
-  infoLabel: {
-    color: "#9CA3AF",
-    fontSize: 12,
-  },
-  infoValue: {
-    color: "#E5E7EB",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  sectionTitle: {
-    color: "#E5E7EB",
+  
+  // Premium Inputs
+  premiumInput: { 
+    marginBottom: 16, 
+    backgroundColor: "#f1f5f9", 
     fontSize: 14,
-    fontWeight: "700",
-  },
-  sectionSubtitle: {
-    color: "#9CA3AF",
-    fontSize: 11,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    gap: 8,
-  },
-  cardAccentDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 8,
-    backgroundColor: "#22C55E",
+    borderRadius: 12
   },
 
-  fieldContainer: {
-    marginVertical: 8,
+  // Wage Grid (Tactile Cards)
+  wageGrid: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  premiumWageCard: { 
+    flex: 1, 
+    backgroundColor: '#fff', 
+    borderRadius: 16, 
+    padding: 12, 
+    alignItems: 'center', 
+    borderWidth: 1, 
+    borderColor: '#e2e8f0' 
   },
-  input: {
-    backgroundColor: "#111827",
+  premiumWageCardActive: { 
+    backgroundColor: '#1e293b', 
+    borderColor: '#1e293b',
+    shadowColor: '#1e293b',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5
   },
-  inputOutline: {
-    borderRadius: 12,
-    borderColor: "rgba(148,163,184,0.8)",
-  },
+  premiumWageCardTitle: { fontSize: 13, fontWeight: '600', color: '#64748b', marginTop: -4 },
+  premiumWageCardTextActive: { color: '#fff' },
 
-  statusChip: {
-    marginRight: 8,
-    backgroundColor: "#111827",
-  },
+  dynamicSalaryContainer: { marginBottom: 8 },
 
-  primaryButton: {
-    borderRadius: 16,
-    backgroundColor: "#22C55E",
-    marginTop: 10,
+  // Premium Buttons
+  premiumActionButtons: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginTop: 16,
+    gap: 12 
   },
-
-  fabContainer: {
-    position: "absolute",
-    right: 16,
-    bottom: 20,
-    alignItems: "center",
-    gap: 10,
+  ghostButton: { paddingVertical: 12, paddingHorizontal: 16 },
+  ghostButtonText: { color: '#64748b', fontWeight: '700', fontSize: 14 },
+  primaryActionButton: { 
+    flex: 1, 
+    backgroundColor: '#1e293b', 
+    borderRadius: 14, 
+    paddingVertical: 16, 
+    alignItems: 'center',
+    shadowColor: '#1e293b',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8
   },
-  fabPrimary: {
-    backgroundColor: "#22C55E",
-  },
-  fabSecondary: {
-    backgroundColor: "#020617",
-    borderWidth: 1,
-    borderColor: "#22C55E",
-  },
+  primaryActionButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  
+  fab: { position: "absolute", margin: 16, right: 0, bottom: 20, backgroundColor: "#1E293B", borderRadius: 30 },
 });

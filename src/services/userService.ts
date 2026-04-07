@@ -3,7 +3,6 @@ import apiClient from "./apiClient";
 // import apiClient from "./apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://10.0.2.2:8080/api/auth"; // backend auth endpoints
 // 🔹 Example: Fetch logged-in user's profile
 export const getUserProfile = async () => {
   const response = await apiClient.get("/user/profile");
@@ -27,7 +26,7 @@ export const getUserInfo = async () => {
     const token = await AsyncStorage.getItem("jwtToken");
     if (!token) throw new Error("No token found");
 
-    const response = await apiClient.get(`${API_URL}/getuser`, {
+    const response = await apiClient.get(`/auth/getuser`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

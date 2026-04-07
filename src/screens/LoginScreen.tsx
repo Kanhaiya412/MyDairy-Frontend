@@ -46,6 +46,9 @@ const LoginScreen = ({ navigation }: any) => {
         await AsyncStorage.setItem("jwtToken", response.token);
         await AsyncStorage.setItem("role", response.role);
         await AsyncStorage.setItem("username", response.username);
+        if (response.userId) {
+          await AsyncStorage.setItem("userId", String(response.userId));
+        }
         navigation.reset({ index: 0, routes: [{ name: "FarmerHome" }] });
       } else {
         Alert.alert("Error", "Invalid credentials");

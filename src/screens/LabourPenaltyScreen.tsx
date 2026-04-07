@@ -1,17 +1,11 @@
 // src/screens/LabourPenaltyScreen.tsx
 
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import { DrawerScreenProps } from "@react-navigation/drawer";
-import { RootDrawerParamList, RootStackParamList } from "../navigation/types";
+import { View, StyleSheet, ScrollView, Alert, Pressable } from "react-native";
+import { Card, Text, Button, TextInput, ActivityIndicator, Chip } from "react-native-paper";
+
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/types";
 
 import { getLabourById } from "../services/labourService";
 import {
@@ -20,50 +14,71 @@ import {
   markPenaltyPaid,
   PenaltyEntry,
 } from "../services/penaltyService";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LabourPenalty">;
 
-export default function LabourPenaltyScreen({ route }: Props) {
+const today = () => new Date().toISOString().slice(0, 10);
+
+const formatNumber = (num: any) => {
+  if (num == null || isNaN(num)) return "0";
+  return Number(num).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+};
+
+export default function LabourPenaltyScreen({ route, navigation }: Props) {
   const { labourId } = route.params;
 
   const [labour, setLabour] = useState<any>(null);
   const [penalties, setPenalties] = useState<PenaltyEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(today());
   const [extraLeaves, setExtraLeaves] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
+
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadAll();
   }, []);
 
-  const today = () => new Date().toISOString().slice(0, 10);
-
   const loadAll = async () => {
     try {
       setLoading(true);
+
       const l = await getLabourById(labourId);
       setLabour(l);
 
       const list = await getPenaltyHistory(labourId);
       setPenalties(list || []);
-    } catch (e) {
-      Alert.alert("Error", "Failed to load penalties");
+    } catch (e: any) {
+      Alert.alert("Error", e?.response?.data || "Failed to load penalties");
     } finally {
       setLoading(false);
     }
   };
 
+  const unpaidTotal = penalties
+    .filter((p) => p.status === "UNPAID")
+    .reduce((sum, p) => sum + (p.penaltyAmount || 0), 0);
+
+  const paidTotal = penalties
+    .filter((p) => p.status === "PAID")
+    .reduce((sum, p) => sum + (p.penaltyAmount || 0), 0);
+
   const onAddPenalty = async () => {
-    if (!amount || !extraLeaves) {
-      Alert.alert("Validation", "Amount and extra leaves are required");
+    if (!extraLeaves.trim() || Number(extraLeaves) <= 0) {
+      Alert.alert("Validation", "Extra leaves must be > 0");
+      return;
+    }
+    if (!amount.trim() || Number(amount) <= 0) {
+      Alert.alert("Validation", "Penalty amount must be > 0");
       return;
     }
 
     try {
+      setSaving(true);
+
       await addPenalty({
         labourId,
         date: date || today(),
@@ -71,166 +86,286 @@ export default function LabourPenaltyScreen({ route }: Props) {
         penaltyAmount: Number(amount),
         reason: reason || "Extra leaves",
       });
-      Alert.alert("Success", "Penalty recorded");
-      setDate("");
+
+      Alert.alert("Success ✅", "Penalty recorded");
+
+      setDate(today());
       setExtraLeaves("");
       setAmount("");
       setReason("");
+
       loadAll();
     } catch (e: any) {
       Alert.alert("Error", e?.response?.data || "Failed to add penalty");
+    } finally {
+      setSaving(false);
     }
   };
 
   const onMarkPaid = async (p: PenaltyEntry) => {
-    try {
-      await markPenaltyPaid(p.id, { notes: "Marked paid from app" });
-      Alert.alert("Success", "Penalty marked as paid");
-      loadAll();
-    } catch (e) {
-      Alert.alert("Error", "Failed to mark penalty");
-    }
+    Alert.alert(
+      "Mark Paid?",
+      `Penalty ₹${formatNumber(p.penaltyAmount)}\nDate: ${p.date}`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Mark Paid",
+          style: "default",
+          onPress: async () => {
+            try {
+              await markPenaltyPaid(p.id, { notes: "Marked paid from app" });
+              Alert.alert("Done ✅", "Penalty marked as PAID");
+              loadAll();
+            } catch (e: any) {
+              Alert.alert("Error", e?.response?.data || "Failed to mark paid");
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: "#777" }}>Loading...</Text>
+        <ActivityIndicator animating />
+        <Text style={{ color: "#9CA3AF", marginTop: 8 }}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>{labour?.labourName}</Text>
-      <Text style={styles.sub}>Leave Penalties & Deductions</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 30 }}>
+      {/* HERO */}
+      <View style={styles.heroCard}>
+        <Text style={styles.heroTitle}>{labour?.labourName || "Labour"}</Text>
+        <Text style={styles.heroSub}>Penalty & Extra Leaves</Text>
 
-      {/* CREATE PENALTY */}
-      <View style={styles.card}>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryBoxOrange}>
+            <Text style={styles.summaryLabel}>Unpaid</Text>
+            <Text style={styles.summaryValueOrange}>₹{formatNumber(unpaidTotal)}</Text>
+          </View>
+          <View style={styles.summaryBoxGreen}>
+            <Text style={styles.summaryLabel}>Paid</Text>
+            <Text style={styles.summaryValueGreen}>₹{formatNumber(paidTotal)}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ADD PENALTY */}
+      <Card style={styles.glassCard}>
         <Text style={styles.cardTitle}>Add Penalty</Text>
 
-        <Text style={styles.label}>Date (yyyy-MM-dd)</Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
+          label="Date (yyyy-MM-dd)"
           value={date}
           onChangeText={setDate}
-          placeholder={today()}
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <Text style={styles.label}>Extra Leaves (count)</Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
+          label="Extra Leaves (count)"
           value={extraLeaves}
           onChangeText={setExtraLeaves}
           keyboardType="numeric"
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <Text style={styles.label}>Penalty Amount (₹)</Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
+          label="Penalty Amount (₹)"
           value={amount}
           onChangeText={setAmount}
           keyboardType="numeric"
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <Text style={styles.label}>Reason (optional)</Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
+          label="Reason (optional)"
           value={reason}
           onChangeText={setReason}
-          placeholder="More than allowed leaves"
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <TouchableOpacity style={styles.primaryBtn} onPress={onAddPenalty}>
-          <Text style={styles.btnText}>Save Penalty</Text>
-        </TouchableOpacity>
-      </View>
+        <Button
+          mode="contained"
+          buttonColor="#F97316"
+          style={styles.btn}
+          loading={saving}
+          disabled={saving}
+          onPress={onAddPenalty}
+        >
+          Save Penalty
+        </Button>
+      </Card>
 
-      {/* LIST */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Penalty History</Text>
+      {/* HISTORY */}
+      <Card style={styles.glassCard}>
+        <View style={styles.rowBetween}>
+          <Text style={styles.cardTitle}>Penalty History</Text>
+          <Pressable onPress={loadAll}>
+            <Text style={{ color: "#22C55E", fontWeight: "900" }}>Refresh</Text>
+          </Pressable>
+        </View>
+
         {penalties.length === 0 ? (
-          <Text style={{ color: "#666" }}>No penalties added yet.</Text>
+          <Text style={{ color: "#9CA3AF", marginTop: 6 }}>
+            No penalties recorded yet.
+          </Text>
         ) : (
           penalties.map((p) => (
-            <View key={p.id} style={styles.penaltyRow}>
-              <View>
-                <Text style={{ fontWeight: "600" }}>
-                  {p.date} • ₹{p.penaltyAmount}
+            <View key={p.id} style={styles.itemRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.itemTop}>
+                  {p.date} • ₹{formatNumber(p.penaltyAmount)}
                 </Text>
-                <Text style={{ color: "#555" }}>
-                  Extra Leaves: {p.extraLeaves} • {p.reason}
+
+                <Text style={styles.itemSub}>
+                  Extra Leaves: {p.extraLeaves}{" "}
+                  {p.reason ? `• ${p.reason}` : ""}
                 </Text>
-                <Text style={{ color: p.status === "PAID" ? "#16A34A" : "#DC2626" }}>
-                  Status: {p.status}
+
+                <Text style={styles.itemStatus}>
+                  Status:{" "}
+                  <Text
+                    style={{
+                      color: p.status === "PAID" ? "#22C55E" : "#F97316",
+                      fontWeight: "900",
+                    }}
+                  >
+                    {p.status}
+                  </Text>
                   {p.paidDate ? ` • Paid on ${p.paidDate}` : ""}
                 </Text>
               </View>
 
-              {p.status === "UNPAID" && (
-                <TouchableOpacity
-                  style={styles.smallBtn}
+              {p.status === "UNPAID" ? (
+                <Chip
+                  mode="flat"
+                  style={styles.payChip}
+                  textStyle={{ color: "#022C22", fontWeight: "900" }}
                   onPress={() => onMarkPaid(p)}
                 >
-                  <Text style={styles.smallBtnText}>Mark Paid</Text>
-                </TouchableOpacity>
+                  Mark Paid
+                </Chip>
+              ) : (
+                <Chip
+                  mode="outlined"
+                  style={styles.paidChip}
+                  textStyle={{ color: "#22C55E", fontWeight: "900" }}
+                >
+                  Paid ✅
+                </Chip>
               )}
             </View>
           ))
         )}
-      </View>
+      </Card>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#F9FAFB" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-
-  header: { fontSize: 22, fontWeight: "700", marginBottom: 4 },
-  sub: { color: "#6B7280", marginBottom: 12 },
-
-  card: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 14,
-    elevation: 2,
-  },
-  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
-
-  label: { marginTop: 8, marginBottom: 4, color: "#374151" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: "#FFFFFF",
-  },
-
-  primaryBtn: {
-    backgroundColor: "#2563EB",
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 14,
-  },
-  btnText: { color: "white", textAlign: "center", fontWeight: "700" },
-
-  penaltyRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  smallBtn: {
-    backgroundColor: "#16A34A",
-    height: 32,
-    paddingHorizontal: 10,
+  screen: { flex: 1, backgroundColor: "#020014", padding: 12 },
+  center: {
+    flex: 1,
+    backgroundColor: "#020014",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    padding: 16,
   },
-  smallBtnText: { color: "white", fontSize: 12, fontWeight: "700" },
+
+  heroCard: {
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 10,
+    backgroundColor: "rgba(10,10,30,0.95)",
+    borderWidth: 1.2,
+    borderColor: "rgba(129,140,248,0.6)",
+  },
+  heroTitle: { color: "#fff", fontSize: 20, fontWeight: "900" },
+  heroSub: { color: "#9CA3AF", marginTop: 4 },
+
+  summaryRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 12,
+  },
+  summaryLabel: { color: "#9CA3AF", fontSize: 12 },
+
+  summaryBoxOrange: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: "rgba(249,115,22,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(249,115,22,0.35)",
+  },
+  summaryValueOrange: {
+    color: "#F97316",
+    fontWeight: "900",
+    fontSize: 16,
+    marginTop: 2,
+  },
+
+  summaryBoxGreen: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: "rgba(34,197,94,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.35)",
+  },
+  summaryValueGreen: {
+    color: "#22C55E",
+    fontWeight: "900",
+    fontSize: 16,
+    marginTop: 2,
+  },
+
+  glassCard: {
+    borderRadius: 18,
+    marginBottom: 12,
+    backgroundColor: "rgba(11,14,40,0.9)",
+    borderWidth: 1.2,
+    borderColor: "rgba(129,140,248,0.8)",
+    padding: 12,
+  },
+  cardTitle: { color: "#E5E7EB", fontWeight: "900", fontSize: 14 },
+
+  input: { backgroundColor: "#111827", marginTop: 10 },
+  inputOutline: { borderRadius: 12, borderColor: "rgba(148,163,184,0.8)" },
+
+  btn: { marginTop: 12, borderRadius: 16 },
+
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+
+  itemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: "rgba(148,163,184,0.15)",
+  },
+  itemTop: { color: "#E5E7EB", fontWeight: "900" },
+  itemSub: { color: "#9CA3AF", marginTop: 2, fontSize: 12 },
+  itemStatus: { color: "#9CA3AF", marginTop: 4, fontSize: 12 },
+
+  payChip: { backgroundColor: "#22C55E", borderRadius: 999 },
+  paidChip: { borderRadius: 999, borderColor: "#22C55E" },
 });

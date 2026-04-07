@@ -1,15 +1,8 @@
 // src/screens/LabourAdvanceScreen.tsx
 
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { View, StyleSheet, ScrollView, Alert, Pressable } from "react-native";
+import { Card, Text, Button, TextInput, ActivityIndicator, Chip } from "react-native-paper";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
@@ -25,7 +18,14 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, "LabourAdvance">;
 
-export default function LabourAdvanceScreen({ route }: Props) {
+const today = () => new Date().toISOString().slice(0, 10);
+
+const formatNumber = (num: any) => {
+  if (num == null || isNaN(num)) return "0";
+  return Number(num).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+};
+
+export default function LabourAdvanceScreen({ route, navigation }: Props) {
   const { labourId } = route.params;
 
   const [labour, setLabour] = useState<any>(null);
@@ -35,19 +35,17 @@ export default function LabourAdvanceScreen({ route }: Props) {
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
 
-  const [month, setMonth] = useState<number>(new Date().getMonth() + 1); // 1–12
+  const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
 
   const [pending, setPending] = useState<SalaryAdvanceEntry[]>([]);
   const [history, setHistory] = useState<SalaryAdvanceEntry[]>([]);
 
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     loadAll();
   }, [month, year]);
-
-  function today() {
-    return new Date().toISOString().slice(0, 10); // yyyy-MM-dd
-  }
 
   const loadAll = async () => {
     try {
@@ -59,56 +57,20 @@ export default function LabourAdvanceScreen({ route }: Props) {
       const pend = await getPendingAdvances(labourId, month, year);
       setPending(pend || []);
 
-      const hist = await getAdvanceHistory(labourId); // full history
+      const hist = await getAdvanceHistory(labourId);
       setHistory(hist || []);
-    } catch (e) {
-      console.log("Advance load error", e);
+    } catch (e: any) {
+      console.log("Advance load error", e?.response?.data || e);
       Alert.alert("Error", "Failed to load advances");
     } finally {
       setLoading(false);
     }
   };
 
-  const onAddAdvance = async () => {
-    if (!amount.trim()) {
-      Alert.alert("Validation", "Amount is required");
-      return;
-    }
-
-    try {
-      await addSalaryAdvance({
-        labourId,
-        amount: Number(amount),
-        date: date || today(),
-        remarks: remarks || undefined,
-      });
-
-      Alert.alert("Success", "Advance recorded");
-      setAmount("");
-      setRemarks("");
-      setDate(today());
-
-      loadAll();
-    } catch (e: any) {
-      console.log("Add advance error", e?.response?.data || e);
-      Alert.alert("Error", e?.response?.data || "Failed to add advance");
-    }
-  };
-
-  const onSettle = async (adv: SalaryAdvanceEntry) => {
-    try {
-      await settleAdvance(adv.id);
-      Alert.alert("Success", "Advance marked as settled");
-      loadAll();
-    } catch (e) {
-      console.log("Settle advance error", e);
-      Alert.alert("Error", "Failed to settle advance");
-    }
-  };
-
   const changeMonth = (delta: number) => {
     let m = month + delta;
     let y = year;
+
     if (m < 1) {
       m = 12;
       y = year - 1;
@@ -122,209 +84,313 @@ export default function LabourAdvanceScreen({ route }: Props) {
 
   const pendingTotal = pending.reduce((sum, a) => sum + (a.amount || 0), 0);
 
+  const onAddAdvance = async () => {
+    if (!amount.trim() || Number(amount) <= 0) {
+      Alert.alert("Validation", "Enter valid amount");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await addSalaryAdvance({
+        labourId,
+        amount: Number(amount),
+        date: date || today(),
+        remarks: remarks || undefined,
+      });
+
+      Alert.alert("Success ✅", "Advance saved");
+
+      setAmount("");
+      setRemarks("");
+      setDate(today());
+
+      loadAll();
+    } catch (e: any) {
+      console.log("Add advance error", e?.response?.data || e);
+      Alert.alert("Error", e?.response?.data || "Failed to add advance");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onSettle = async (adv: SalaryAdvanceEntry) => {
+    Alert.alert(
+      "Settle Advance?",
+      `Mark this advance as SETTLED?\n₹${formatNumber(adv.amount)} on ${adv.date}`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Settle",
+          style: "default",
+          onPress: async () => {
+            try {
+              await settleAdvance(adv.id);
+              Alert.alert("Success ✅", "Advance settled");
+              loadAll();
+            } catch {
+              Alert.alert("Error", "Failed to settle advance");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading && !labour) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: "#777" }}>Loading...</Text>
+        <ActivityIndicator animating />
+        <Text style={{ color: "#9CA3AF", marginTop: 8 }}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>{labour?.labourName}</Text>
-      <Text style={styles.sub}>Salary Advance (No interest)</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 30 }}>
+      {/* HERO */}
+      <View style={styles.heroCard}>
+        <Text style={styles.heroTitle}>{labour?.labourName || "Labour"}</Text>
+        <Text style={styles.heroSub}>Salary Advance (No Interest)</Text>
 
-      {/* MONTH PICKER + SUMMARY */}
-      <View style={styles.card}>
         <View style={styles.monthRow}>
-          <TouchableOpacity
-            style={styles.monthArrow}
-            onPress={() => changeMonth(-1)}
-          >
-            <Text style={styles.monthArrowText}>◀</Text>
-          </TouchableOpacity>
+          <Pressable style={styles.monthBtn} onPress={() => changeMonth(-1)}>
+            <Text style={styles.monthBtnText}>◀</Text>
+          </Pressable>
 
           <Text style={styles.monthText}>
             {month}/{year}
           </Text>
 
-          <TouchableOpacity
-            style={styles.monthArrow}
-            onPress={() => changeMonth(1)}
-          >
-            <Text style={styles.monthArrowText}>▶</Text>
-          </TouchableOpacity>
+          <Pressable style={styles.monthBtn} onPress={() => changeMonth(1)}>
+            <Text style={styles.monthBtnText}>▶</Text>
+          </Pressable>
         </View>
 
-        <Text style={styles.summaryText}>
-          Pending advances this month:{" "}
-          <Text style={{ fontWeight: "700" }}>₹{pendingTotal.toFixed(2)}</Text>
-        </Text>
+        <View style={styles.pendingBox}>
+          <Text style={styles.pendingLabel}>Pending this month</Text>
+          <Text style={styles.pendingValue}>₹{formatNumber(pendingTotal)}</Text>
+        </View>
       </View>
 
       {/* ADD ADVANCE */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Give Salary Advance</Text>
+      <Card style={styles.glassCard}>
+        <Text style={styles.cardTitle}>Give Advance</Text>
 
-        <Text style={styles.label}>Date (yyyy-MM-dd)</Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
+          label="Date (yyyy-MM-dd)"
           value={date}
           onChangeText={setDate}
-          placeholder={today()}
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <Text style={styles.label}>Amount (₹)</Text>
         <TextInput
-          style={styles.input}
-          keyboardType="numeric"
+          mode="outlined"
+          label="Amount (₹)"
           value={amount}
+          keyboardType="numeric"
           onChangeText={setAmount}
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <Text style={styles.label}>Remarks (optional)</Text>
         <TextInput
-          style={styles.input}
+          mode="outlined"
+          label="Remarks (optional)"
           value={remarks}
           onChangeText={setRemarks}
-          placeholder="e.g. Emergency, festival, etc."
+          style={styles.input}
+          outlineStyle={styles.inputOutline}
         />
 
-        <TouchableOpacity style={styles.primaryBtn} onPress={onAddAdvance}>
-          <Text style={styles.btnText}>Save Advance</Text>
-        </TouchableOpacity>
-      </View>
+        <Button
+          mode="contained"
+          buttonColor="#22C55E"
+          style={styles.btn}
+          loading={saving}
+          disabled={saving}
+          onPress={onAddAdvance}
+        >
+          Save Advance
+        </Button>
+      </Card>
 
       {/* PENDING LIST */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Pending this Month</Text>
+      <Card style={styles.glassCard}>
+        <Text style={styles.cardTitle}>Pending (This Month)</Text>
+
         {pending.length === 0 ? (
-          <Text style={{ color: "#6B7280" }}>No pending advances.</Text>
+          <Text style={{ color: "#9CA3AF", marginTop: 6 }}>
+            No pending advance ✅
+          </Text>
         ) : (
           pending.map((a) => (
             <View key={a.id} style={styles.rowBetween}>
-              <View>
-                <Text style={{ fontWeight: "600" }}>
-                  {a.date} • ₹{a.amount}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowTop}>
+                  {a.date} • ₹{formatNumber(a.amount)}
                 </Text>
                 {a.remarks ? (
-                  <Text style={{ color: "#4B5563" }}>{a.remarks}</Text>
+                  <Text style={styles.rowSub}>{a.remarks}</Text>
                 ) : null}
               </View>
 
-              <TouchableOpacity
-                style={styles.smallBtn}
+              <Chip
+                mode="flat"
+                style={styles.settleChip}
+                textStyle={{ color: "#022C22", fontWeight: "900" }}
                 onPress={() => onSettle(a)}
               >
-                <Text style={styles.smallBtnText}>Settle</Text>
-              </TouchableOpacity>
+                Settle
+              </Chip>
             </View>
           ))
         )}
-      </View>
+      </Card>
 
-      {/* FULL HISTORY */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>All Advance History</Text>
+      {/* HISTORY */}
+      <Card style={styles.glassCard}>
+        <View style={styles.rowBetweenHeader}>
+          <Text style={styles.cardTitle}>All Advance History</Text>
+          <Pressable onPress={loadAll}>
+            <Text style={{ color: "#22C55E", fontWeight: "800" }}>Refresh</Text>
+          </Pressable>
+        </View>
+
         {history.length === 0 ? (
-          <Text style={{ color: "#6B7280" }}>No advances recorded yet.</Text>
+          <Text style={{ color: "#9CA3AF", marginTop: 6 }}>
+            No advances recorded yet.
+          </Text>
         ) : (
           history.map((a) => (
             <View key={a.id} style={styles.historyItem}>
-              <Text style={{ fontWeight: "600" }}>
-                {a.date} • ₹{a.amount}
-              </Text>
-              {a.remarks ? (
-                <Text style={{ color: "#4B5563" }}>{a.remarks}</Text>
-              ) : null}
-              <Text
-                style={{
-                  color: a.status === "SETTLED" ? "#16A34A" : "#DC2626",
-                  fontSize: 12,
-                }}
-              >
-                Status: {a.status}
-                {a.settledDate ? ` • Settled on ${a.settledDate}` : ""}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowTop}>
+                  {a.date} • ₹{formatNumber(a.amount)}
+                </Text>
+                {a.remarks ? (
+                  <Text style={styles.rowSub}>{a.remarks}</Text>
+                ) : null}
+                <Text style={{ marginTop: 4, color: "#9CA3AF", fontSize: 12 }}>
+                  Status:{" "}
+                  <Text
+                    style={{
+                      color: a.status === "SETTLED" ? "#22C55E" : "#F97316",
+                      fontWeight: "800",
+                    }}
+                  >
+                    {a.status}
+                  </Text>
+                  {a.settledDate ? ` • Settled on ${a.settledDate}` : ""}
+                </Text>
+              </View>
             </View>
           ))
         )}
-      </View>
+      </Card>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#F9FAFB" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-
-  header: { fontSize: 22, fontWeight: "700", marginBottom: 4 },
-  sub: { color: "#6B7280", marginBottom: 12 },
-
-  card: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 14,
-    elevation: 2,
+  screen: {
+    flex: 1,
+    backgroundColor: "#020014",
+    padding: 12,
   },
-  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
-
-  label: { marginTop: 8, marginBottom: 4, color: "#374151" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: "#FFFFFF",
+  center: {
+    flex: 1,
+    backgroundColor: "#020014",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
   },
 
-  primaryBtn: {
-    backgroundColor: "#2563EB",
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 14,
+  heroCard: {
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 10,
+    backgroundColor: "rgba(10,10,30,0.95)",
+    borderWidth: 1.2,
+    borderColor: "rgba(129,140,248,0.6)",
   },
-  btnText: { color: "white", textAlign: "center", fontWeight: "700" },
+  heroTitle: { color: "#fff", fontSize: 20, fontWeight: "900" },
+  heroSub: { color: "#9CA3AF", marginTop: 4 },
 
   monthRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    alignItems: "center",
+    marginTop: 12,
+    gap: 12,
   },
-  monthArrow: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  monthBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#111827",
+    borderWidth: 1,
+    borderColor: "rgba(129,140,248,0.4)",
   },
-  monthArrowText: { fontSize: 16, color: "#111827" },
-  monthText: { fontSize: 16, fontWeight: "700", marginHorizontal: 8 },
+  monthBtnText: { color: "#E5E7EB", fontWeight: "900" },
+  monthText: { color: "#E5E7EB", fontWeight: "900", fontSize: 15 },
 
-  summaryText: { color: "#374151" },
+  pendingBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: "rgba(34,197,94,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.35)",
+  },
+  pendingLabel: { color: "#9CA3AF", fontSize: 12 },
+  pendingValue: { color: "#22C55E", fontWeight: "900", fontSize: 18, marginTop: 2 },
+
+  glassCard: {
+    borderRadius: 18,
+    marginBottom: 12,
+    backgroundColor: "rgba(11,14,40,0.9)",
+    borderWidth: 1.2,
+    borderColor: "rgba(129,140,248,0.8)",
+    padding: 12,
+  },
+  cardTitle: { color: "#E5E7EB", fontWeight: "900", fontSize: 14 },
+
+  input: { backgroundColor: "#111827", marginTop: 10 },
+  inputOutline: { borderRadius: 12, borderColor: "rgba(148,163,184,0.8)" },
+
+  btn: { marginTop: 12, borderRadius: 16 },
 
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    alignItems: "center",
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "rgba(148,163,184,0.15)",
   },
 
-  smallBtn: {
-    backgroundColor: "#16A34A",
-    height: 32,
-    paddingHorizontal: 10,
+  rowBetweenHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
+    marginBottom: 6,
   },
-  smallBtnText: { color: "white", fontSize: 12, fontWeight: "700" },
+
+  rowTop: { color: "#E5E7EB", fontWeight: "800" },
+  rowSub: { color: "#9CA3AF", marginTop: 2, fontSize: 12 },
+
+  settleChip: {
+    backgroundColor: "#22C55E",
+    borderRadius: 999,
+  },
 
   historyItem: {
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "rgba(148,163,184,0.15)",
   },
 });

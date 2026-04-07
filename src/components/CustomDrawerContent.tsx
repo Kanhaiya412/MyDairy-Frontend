@@ -1,11 +1,5 @@
-import React, { ReactNode } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Dimensions,
-} from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import {
   DrawerContentScrollView,
   DrawerContentComponentProps,
@@ -13,46 +7,58 @@ import {
 import GradientBackground from "./GradientBackground";
 
 interface DrawerUser {
-  username: string;
-  role: string;
+  username?: string;
+  role?: string;
 }
 
-// ✅ FIX: Extend built-in DrawerContentComponentProps
 interface CustomDrawerContentProps extends DrawerContentComponentProps {
   user?: DrawerUser | null;
   onLogout?: () => void;
-  children?: ReactNode;
 }
 
-const { width } = Dimensions.get("window");
-
-const CustomDrawerContent: React.FC<CustomDrawerContentProps> = ({
+export default function CustomDrawerContent({
   navigation,
   user,
   onLogout,
   state,
-}) => {
-  const activeRoute = state?.routes?.[state?.index]?.name;
+}: CustomDrawerContentProps) {
+  const activeRoute = state?.routes?.[state.index]?.name;
 
-  const menuItems = [
+  // ✅ IMPORTANT: Drawer me only those screens jinke params "undefined" ho
+  // LabourProfile, LabourLoan etc stack screens hai → drawer me add karoge to crash hoga
+  const menuItems: { name: string; icon: string; screen: string }[] = [
     { name: "Dashboard", icon: "📊", screen: "Dashboard" },
     { name: "Add Milk", icon: "🥛", screen: "AddMilk" },
+    { name: "Milk Records", icon: "📒", screen: "MilkRecord" },
+
     { name: "Add Cattle", icon: "🐄", screen: "AddCattle" },
     { name: "Cattle Records", icon: "📋", screen: "CattleRecords" },
     { name: "Sold Cattle", icon: "💸", screen: "SoldCattleRecords" },
+
     { name: "Add Expense", icon: "💰", screen: "AddExpense" },
     { name: "Expense Records", icon: "🧾", screen: "ExpenseRecord" },
-    { name: "Milk Records", icon: "🥛", screen: "MilkRecord" },
-    { name: "Animal Management", icon: "🧾", screen: "AnimalManagement" },
-    { name: "Labour Management", icon: "🧾", screen: "LabourManagement" },
-    { name: "Labour Profile", icon: "🧾", screen: "LabourProfile" },
-  
+
+    { name: "Animal Management", icon: "🩺", screen: "AnimalManagement" },
+    { name: "Labour Management", icon: "👷", screen: "LabourManagement" },
+
     { name: "Settings", icon: "⚙️", screen: "Settings" },
   ];
 
+  const username = user?.username?.trim() || "Farmer";
+  const role = user?.role?.trim() || "USER";
+
+  const confirmLogout = () => {
+    if (!onLogout) return;
+
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Logout", style: "destructive", onPress: onLogout },
+    ]);
+  };
+
   return (
     <View style={styles.drawerContainer}>
-      {/* Background gradient bounded to drawer width */}
+      {/* ✅ Background */}
       <View style={styles.gradientWrapper}>
         <GradientBackground />
       </View>
@@ -61,132 +67,220 @@ const CustomDrawerContent: React.FC<CustomDrawerContentProps> = ({
         contentContainerStyle={styles.drawerScroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👤 Profile Section */}
+        {/* ✅ Profile */}
         <View style={styles.profileSection}>
-          <Text style={styles.profileEmoji}>🐮</Text>
-          <Text style={styles.profileName}>{user?.username || "Farmer"}</Text>
-          <Text style={styles.profileRole}>
-            {user?.role?.toUpperCase() || "USER"}
-          </Text>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarIcon}>🐮</Text>
+          </View>
+
+          <Text style={styles.profileName}>{username}</Text>
+          <View style={styles.rolePill}>
+            <Text style={styles.profileRole}>{role.toUpperCase()}</Text>
+          </View>
+
           <Text style={styles.profileTagline}>Smart Dairy Management</Text>
         </View>
 
-        {/* 🧭 Menu Section */}
+        {/* ✅ Menu */}
         <View style={styles.menuSection}>
           {menuItems.map((item) => {
             const isActive = activeRoute === item.screen;
+
             return (
               <Pressable
                 key={item.screen}
                 onPress={() => navigation.navigate(item.screen as never)}
-                style={[styles.menuItem, isActive && styles.activeMenuItem]}
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  isActive && styles.activeMenuItem,
+                  pressed && { opacity: 0.85 },
+                ]}
               >
                 <Text style={styles.emojiIcon}>{item.icon}</Text>
-                <Text
-                  style={[styles.menuText, isActive && styles.activeMenuText]}
-                >
-                  {item.name}
-                </Text>
+
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.menuText,
+                      isActive && styles.activeMenuText,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
+                </View>
+
+                {isActive ? <View style={styles.activeDot} /> : null}
               </Pressable>
             );
           })}
         </View>
+
+        {/* ✅ Small Info */}
+        <View style={styles.footerInfo}>
+          <Text style={styles.footerText}>MyDairy • v1.0</Text>
+        </View>
       </DrawerContentScrollView>
 
-      {/* 🚪 Logout Button */}
+      {/* ✅ Logout */}
       {onLogout && (
         <Pressable
-          onPress={onLogout}
+          onPress={confirmLogout}
           style={({ pressed }) => [
             styles.logoutButton,
-            pressed && { opacity: 0.8 },
+            pressed && { opacity: 0.85 },
           ]}
         >
-          <Text style={styles.emojiIcon}>🚪</Text>
+          <Text style={styles.logoutIcon}>🚪</Text>
           <Text style={styles.logoutText}>Logout</Text>
         </Pressable>
       )}
     </View>
   );
-};
-
-// const { width } = Dimensions.get("window");
+}
 
 const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
-    backgroundColor: "rgba(2,16,26,0.97)",
+    backgroundColor: "rgba(2, 10, 20, 0.98)",
     overflow: "hidden",
   },
+
   gradientWrapper: {
     ...StyleSheet.absoluteFillObject,
-    width: width * 0.8, // match drawer width
     zIndex: -1,
   },
+
   drawerScroll: {
     paddingTop: 10,
     paddingBottom: 20,
   },
+
   profileSection: {
     alignItems: "center",
-    paddingVertical: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
+    paddingVertical: 28,
+    marginHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
   },
-  profileEmoji: { fontSize: 48 },
+
+  avatarCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(34,197,94,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.35)",
+  },
+
+  avatarIcon: { fontSize: 34 },
+
   profileName: {
     color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "700",
-    marginTop: 6,
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 10,
   },
+
+  rolePill: {
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(34,197,94,0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.35)",
+  },
+
   profileRole: {
     color: "#22C55E",
-    fontSize: 13,
-    fontWeight: "600",
-    marginVertical: 4,
-  },
-  profileTagline: {
-    color: "#A5F3FC",
     fontSize: 12,
-    letterSpacing: 0.5,
+    fontWeight: "800",
+    letterSpacing: 0.6,
   },
-  menuSection: { paddingHorizontal: 12, marginTop: 10 },
+
+  profileTagline: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 12,
+    marginTop: 8,
+  },
+
+  menuSection: {
+    paddingHorizontal: 12,
+    marginTop: 14,
+  },
+
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginVertical: 4,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginVertical: 5,
     backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
+
   activeMenuItem: {
-    backgroundColor: "rgba(34,197,94,0.15)",
-    borderLeftWidth: 3,
-    borderLeftColor: "#22C55E",
+    backgroundColor: "rgba(34,197,94,0.14)",
+    borderColor: "rgba(34,197,94,0.40)",
   },
-  emojiIcon: { fontSize: 20, marginRight: 12 },
-  menuText: { color: "#FFFFFF", fontSize: 15, fontWeight: "500" },
-  activeMenuText: { color: "#22C55E", fontWeight: "700" },
+
+  emojiIcon: { fontSize: 18, marginRight: 12 },
+
+  menuText: {
+    color: "rgba(255,255,255,0.92)",
+    fontSize: 14.5,
+    fontWeight: "600",
+  },
+
+  activeMenuText: {
+    color: "#22C55E",
+    fontWeight: "800",
+  },
+
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 8,
+    backgroundColor: "#22C55E",
+    marginLeft: 8,
+  },
+
+  footerInfo: {
+    marginTop: 18,
+    alignItems: "center",
+  },
+
+  footerText: {
+    color: "rgba(255,255,255,0.40)",
+    fontSize: 11,
+  },
+
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,65,65,0.25)",
+    backgroundColor: "rgba(220,38,38,0.18)",
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.1)",
+    borderTopColor: "rgba(255,255,255,0.10)",
     marginHorizontal: 16,
-    marginBottom: 25,
-    borderRadius: 12,
+    marginBottom: 22,
+    borderRadius: 14,
     paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "rgba(220,38,38,0.35)",
   },
+
+  logoutIcon: { fontSize: 18, marginRight: 10 },
+
   logoutText: {
     color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "700",
-    marginLeft: 8,
+    fontSize: 14.5,
+    fontWeight: "800",
   },
 });
-
-export default CustomDrawerContent;

@@ -8,8 +8,9 @@ import {
   ScrollView,
   View,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import axios from 'axios';
+import { registerUser } from '../services/authService';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Picker } from '@react-native-picker/picker';
 
@@ -34,6 +35,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('FARMER'); // Default role
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!username || !email || !password) {
@@ -41,31 +43,33 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
+    setIsLoading(true);
     try {
-      const response = await axios.post('http://10.0.2.2:8080/api/auth/register', {
+      // ✅ Now using centralized registerUser service (uses correct backend IP)
+      const data = await registerUser({
         username,
         email,
         password,
         role,
       });
 
-      // ✅ Backend returns { success: boolean, message: string }
-      const data = response.data;
-
       if (data.success) {
         Alert.alert('✅ Success', data.message, [
           { text: 'OK', onPress: () => navigation.navigate('Login') },
         ]);
       } else {
-        Alert.alert('⚠️ Error', data.message);
+        Alert.alert('⚠️ Registration Failed', data.message);
       }
     } catch (error: any) {
       console.error('Register Error:', error);
       const message =
         error.response?.data?.message ||
         error.response?.data ||
+        error.message ||
         'Something went wrong. Please try again.';
       Alert.alert('❌ Error', message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -141,8 +145,16 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           </View>
 
-          <TouchableOpacity onPress={handleRegister} style={styles.registerButton}>
-            <Text style={styles.buttonText}>Register</Text>
+          <TouchableOpacity 
+            onPress={handleRegister} 
+            style={[styles.registerButton, isLoading && { opacity: 0.7 }]}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Register</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity 
