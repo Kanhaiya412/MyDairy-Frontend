@@ -225,7 +225,7 @@ export default function LabourSalaryScreen({ route, navigation }: Props) {
         </View>
 
         {/* BULK SETTLER SECTION (New) */}
-        {data.pendingSalary > 0 && (
+        {(data.pendingSalary ?? 0) > 0 && (
           <View style={[styles.generateBox, { backgroundColor: "#EEF2FF", borderColor: "#C7D2FE", borderStyle: 'dashed' }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
@@ -235,7 +235,7 @@ export default function LabourSalaryScreen({ route, navigation }: Props) {
               </View>
               <TouchableOpacity 
                 onPress={() => {
-                  setLumpsumAmount(String(data.pendingSalary));
+                  setLumpsumAmount(String(data.pendingSalary ?? 0));
                   setLumpsumModalVisible(true);
                 }} 
                 style={{ backgroundColor: '#6366F1', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 }}

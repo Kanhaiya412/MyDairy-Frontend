@@ -202,6 +202,8 @@ const DashboardScreen = ({
     { id: 'SoldCattleRecords', title: 'Sold Cattle', icon: '💰' },
   ];
 
+
+  // this is about adding fat
   const herd: { id: string; title: string; value: string; hint: string }[] = [
     { id: 'count', title: 'Total Cattle', value: '—', hint: 'sync coming soon' },
     {
