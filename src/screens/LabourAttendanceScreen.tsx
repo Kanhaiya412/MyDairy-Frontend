@@ -58,7 +58,7 @@ export default function LabourAttendanceScreen() {
   const [detailLabourId, setDetailLabourId] = useState<number | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
 
-  const serverUrl = apiClient.defaults.baseURL?.replace('/api', '') || "http://10.22.247.26:8080";
+  const serverUrl = apiClient.defaults.baseURL?.replace('/api', '') || "http://10.249.237.26:8080";
 
   useEffect(() => {
     loadData();

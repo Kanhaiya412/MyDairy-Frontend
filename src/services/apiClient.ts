@@ -41,7 +41,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Using your laptop's Hotspot IPv4 address for physical device testing
-const BASE_URL = "http://10.22.247.26:8080/api";
+const BASE_URL = "http://10.249.237.26:8080/api";
 
 console.log("🔥 BACKEND URL:", BASE_URL);
 
